@@ -25,3 +25,7 @@ class CompoundNotFoundError(MolkitError):
 
 class NetworkError(MolkitError):
     """PubChem could not be reached or answered with an unexpected error."""
+
+
+class ModelDataError(MolkitError):
+    """Stored model data is corrupt or from an unsupported schema version."""

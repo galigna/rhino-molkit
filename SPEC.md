@@ -56,14 +56,14 @@ repo/
 │  │  ├─ vec.py              # Vec3 + vector math
 │  │  ├─ elements.py         # element table (radii, colours, mass)
 │  │  ├─ model.py            # Atom, Bond, BondOrder, Molecule
-│  │  ├─ params.py           # ModelParams, PuzzleParams, presets
+│  │  ├─ params.py           # Params + FDM/RESIN presets
 │  │  ├─ serialize.py        # JSON round-trip with schema version
 │  │  ├─ errors.py           # MolkitError hierarchy
 │  │  ├─ sources/
 │  │  │  ├─ sdf.py           # SDF/MOL block -> Molecule (RDKit)
 │  │  │  ├─ pubchem.py       # PUG REST client (injectable HTTP)
 │  │  │  └─ cif.py           # CIF -> Molecule (gemmi + RDKit)
-│  │  ├─ ballstick.py        # Molecule + ModelParams -> BallStickSpec
+│  │  ├─ ballstick.py        # Molecule + Params -> BallStickSpec
 │  │  ├─ puzzle/
 │  │  │  ├─ gender.py        # which end of a bond gets the peg
 │  │  │  ├─ keying.py        # shared key-reference vector per bond
@@ -129,9 +129,9 @@ Molecule(name: str, atoms: tuple[Atom, ...], bonds: tuple[Bond, ...], source: So
     .without_hydrogens() -> Molecule                # reindexes atoms and bonds
     .neighbors(i) -> tuple[int, ...]
 
-ModelParams(scale_mm_per_a, ball_radius_factor, stick_radius_mm, include_hydrogens, kekulize)
-PuzzleParams(preset_name, clearance_mm, peg_length_mm, hole_extra_depth_mm, peg_radius_mm,
-             triple_peg_radius_mm, flat_depth_mm, chamfer_mm, min_wall_mm)
+Params(scale_mm_per_a, ball_radius_factor, stick_radius_mm, include_hydrogens, peg_radius_mm,
+       triple_peg_radius_mm, flat_depth_mm, peg_length_mm, hole_extra_depth_mm, clearance_mm,
+       chamfer_mm, min_wall_mm)                     # FDM and RESIN are preset instances
 
 BallSpec(atom_index, center: Vec3, radius, color_rgb, element)
 StickSpec(atom_index, bond_index, start: Vec3, end: Vec3, radius, color_rgb)   # half-bond
@@ -145,12 +145,11 @@ Joint(bond_index, partner_atom, direction: Vec3,    # unit vector, piece centre 
       stub_length, gender, profile, peg_length, hole_depth, clearance)
 PieceSpec(atom_index, element, center, ball_radius, stick_radius, color_rgb, joints: tuple[Joint, ...])
 
-PuzzleModel(model_id: str, molecule: Molecule, model_params: ModelParams,
-            puzzle_params: PuzzleParams, schema_version: int)   # what is persisted
+PuzzleModel(model_id: str, molecule: Molecule, params: Params)   # what is persisted
 ```
 
 **Persistence:** `serialize.dumps(PuzzleModel) -> str` and `serialize.loads(str) -> PuzzleModel`
-write JSON that includes `schema_version`. Unknown versions raise `SchemaVersionError`.
+write JSON that includes `schema_version`. Unknown versions and corrupt data raise `ModelDataError`.
 
 **Storage in Rhino:** each model gets one locked **anchor** object (a point at the molecule's
 centroid on `Molkit::<name>::_data`). It holds the serialized `PuzzleModel` in its UserDictionary
@@ -163,10 +162,10 @@ rebuilds.
 
 | Command | Does |
 |---|---|
-| `MolkitFetch` | Asks for a compound name, fetches the PubChem 3D SDF, and builds the ball-and-stick model plus its anchor. |
+| `MolkitFetch` | Asks for a compound name (option: `Kekulize`), fetches the PubChem 3D SDF, and builds the ball-and-stick model plus its anchor. |
 | `MolkitImportCif` | Picks a `.cif` file, extracts one molecule, and builds the ball-and-stick model plus its anchor. |
 | `MolkitPuzzle` | Picks a model's anchor or any object in the model, then builds the puzzle pieces on `Molkit::<name>::Pieces`. Printability warnings are printed to the command line. |
-| `MolkitSettings` | Picks a model and edits its parameters (preset, clearance, hydrogens, scale, …) with command-line options. Saves to the anchor and regenerates. |
+| `MolkitSettings` | Picks a model and edits its parameters (apply a preset, clearance, hydrogens, scale, …) with command-line options. Saves to the anchor and regenerates. |
 | `MolkitRegenerate` | Picks a model and rebuilds all of its geometry from the anchor data. |
 | `MolkitExportStl` | Picks a model and a folder. Writes `<name>_<idx:03>_<El>.stl` for each piece and `<name>_manifest.json`. |
 | `MolkitInfo` | Picks a model and prints the formula, atom and bond counts, source, and parameters. |
@@ -197,7 +196,8 @@ the element's CPK colour.
 - **Hole size:** the hole's profile is the peg's profile offset outward by `clearance`. Hole depth
   is `peg_length + hole_extra_depth`, and the hole may extend into the ball.
 - **Aromaticity:** by default, RDKit's aromaticity perception marks ring bonds as aromatic.
-  `kekulize = true` turns them back into alternating single and double bonds.
+  The `Kekulize` import option turns them back into alternating single and double bonds. It is
+  applied while reading the SDF, so it is not a stored parameter.
 - **Validation** (`validate.py`) returns a tuple of `Issue(severity, atom_index, message)` for:
   - wall thickness `stick_radius − (peg_radius + clearance) < min_wall`;
   - neighbouring balls overlapping;
@@ -222,7 +222,6 @@ the element's CPK colour.
 | `chamfer_mm` (peg lead-in) | 0.3 | 0.2 |
 | `min_wall_mm` | 1.0 | 0.6 |
 | `include_hydrogens` | true | true |
-| `kekulize` | false | false |
 | STL mesh: max deviation | 0.05 mm | 0.02 mm |
 
 Sanity check with FDM settings on a C–H bond: 21.8 mm between centres, C ball 8.5 mm, H ball 6.0 mm.
@@ -242,7 +241,7 @@ All of these subclass `MolkitError`, and commands catch `MolkitError` to show a 
 - `CifParseError`
 - `NoMoleculeFoundError`
 - `BondPerceptionWarning` (bond orders are set to single when RDKit can't assign them)
-- `SchemaVersionError`
+- `ModelDataError`: stored model JSON is corrupt or from an unsupported schema version
 - `PrintabilityError`
 
 PubChem's usage policy allows up to 5 requests per second. molkit makes one request per command, so
@@ -262,7 +261,7 @@ committed.
 | M1 | `vec`, `elements`, `model` (validation, `without_hydrogens`, `neighbors`), `errors`. | Unit tests for vector math, invariants, H removal and reindexing. |
 | M2 | `sdf.parse` (RDKit, keeps Hs, aromatic/kekule modes) using fixture SDFs. | Methane has 5 atoms and 4 single bonds, with H–C–H angles of 109.5° ± 1°. Benzene aromatic gives 6 aromatic C–C bonds, kekule gives 3+3. |
 | M3 | `pubchem.fetch_sdf` with an injected HTTP function and error mapping. | Fake transport for 200 / 404 / no-3D / timeout. No real network in tests. |
-| M4 | `params` + presets, and `serialize` round-trip for `PuzzleModel`. | Round-trip equality. Unknown schema version raises. |
+| M4 | `params` + presets, and `serialize` round-trip for `PuzzleModel`. | Round-trip equality. Unknown schema version and corrupt data raise. |
 | M5 | `ballstick.build`. | Ball radii and colours; sticks end at the midpoints; the H toggle works. |
 | M6 | **First Rhino slice:** `units`, `layers`, `blocks`, `geometry` (ball-and-stick), `storage`, and the `MolkitFetch` and `MolkitInfo` commands. | Manual smoke checklist in `docs/smoke-test.md`: methane appears with the right layers and colours, and `MolkitInfo` reads the anchor. |
 | M7 | `MolkitSettings` + `MolkitRegenerate`. | Core: parameter-update helpers are tested. Smoke test: change the scale and the model rebuilds. |
