@@ -76,3 +76,15 @@ Start each run in a new document with units set to **millimetres**.
       hole and "no pieces built"; the old pieces are removed.
 - [ ] `MolkitSettings` back to `StickRadius=3.5`: the pieces are rebuilt automatically.
 - [ ] `IncludeHydrogens=No` with pieces present: methane becomes a single plain C ball piece.
+
+### MolkitExportStl
+- [ ] On methane with pieces: `MolkitExportStl` → click it → pick an empty folder: prints
+      `wrote 5 STL files and methane_manifest.json`.
+- [ ] Folder holds `methane_000_C.stl` … `methane_004_H.stl` and `methane_manifest.json`.
+- [ ] A slicer (or Rhino `Import`) opens `methane_000_C.stl` as one watertight solid with four
+      round holes, 17 mm across (8.5 mm radius ball), in mm, not scaled.
+- [ ] In a **centimetre** document, the exported C piece is still 17 mm across in the slicer.
+- [ ] The manifest lists each file with its joints (partner atom, bond order, peg/hole, shape).
+- [ ] On a model without pieces: "this model has no pieces yet; run MolkitPuzzle first", and no
+      files are written.
+- [ ] Cancel the folder dialog: nothing happens.

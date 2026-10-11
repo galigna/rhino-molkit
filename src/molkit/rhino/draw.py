@@ -37,7 +37,7 @@ def replace_pieces(
 ) -> list[int]:
     """Swap the model's pieces for new ones. Returns atoms whose solids Rhino couldn't build."""
     storage.delete_generated(doc, model.model_id, roles={"piece"})
-    mm = _mm(doc)
+    mm = mm_per_unit(doc)
     failed = []
     for spec in specs:
         brep = pieces.piece_brep(spec, mm, doc.ModelAbsoluteTolerance)
@@ -50,7 +50,7 @@ def replace_pieces(
 
 
 def _add_ballstick(doc: Rhino.RhinoDoc, model: PuzzleModel) -> None:
-    mm = _mm(doc)
+    mm = mm_per_unit(doc)
     parent = f"{_root(model)}::BallStick"
     spec = build(model.molecule, model.params)
     for ball in spec.balls:
@@ -59,7 +59,8 @@ def _add_ballstick(doc: Rhino.RhinoDoc, model: PuzzleModel) -> None:
         _add_stick(doc, model.model_id, parent, stick, mm)
 
 
-def _mm(doc: Rhino.RhinoDoc) -> float:
+def mm_per_unit(doc: Rhino.RhinoDoc) -> float:
+    """Document units per millimetre: multiply core mm values by this."""
     return float(Rhino.RhinoMath.UnitScale(Rhino.UnitSystem.Millimeters, doc.ModelUnitSystem))
 
 

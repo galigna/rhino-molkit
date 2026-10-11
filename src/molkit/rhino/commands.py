@@ -3,20 +3,23 @@
 from __future__ import annotations
 
 import dataclasses
+import os
 import uuid
 
 import Rhino
+import rhinoscriptsyntax as rs
 from Rhino.Input import GetResult
 from Rhino.Input.Custom import GetOption, GetString, OptionDouble, OptionToggle
 
 from molkit.core.errors import MolkitError
 from molkit.core.info import describe
+from molkit.core.manifest import safe_name
 from molkit.core.model import PuzzleModel, SourceInfo
 from molkit.core.params import FDM, PRESETS, Params, option_name, with_preset
 from molkit.core.puzzle import build_pieces, check
 from molkit.core.sources.pubchem import fetch_sdf
 from molkit.core.sources.sdf import parse_sdf
-from molkit.rhino import draw, storage
+from molkit.rhino import draw, export, storage
 
 
 def fetch() -> None:
@@ -65,6 +68,26 @@ def puzzle() -> None:
     model = _pick_model("Select any part of the molkit model to split into pieces")
     if model is not None:
         _build_pieces(model)
+
+
+def export_stl() -> None:
+    """MolkitExportStl: write one STL per piece and an assembly manifest into a folder."""
+    model = _pick_model("Select any part of the molkit model to export")
+    if model is None:
+        return
+    doc = Rhino.RhinoDoc.ActiveDoc
+    start = os.path.dirname(doc.Path) if doc.Path else None
+    folder = rs.BrowseForFolder(start, "Folder for the STL files")
+    if not folder:
+        return
+    written, missing = export.write_stl_files(doc, model, folder, draw.mm_per_unit(doc))
+    if written == 0:
+        print("Molkit: this model has no pieces yet; run MolkitPuzzle first")
+        return
+    name = safe_name(model.molecule.name)
+    print(f"Molkit: wrote {written} STL files and {name}_manifest.json to {folder}")
+    if missing:
+        print(f"Molkit: atoms without a piece, not exported: {missing}")
 
 
 def _redraw(model: PuzzleModel) -> None:
