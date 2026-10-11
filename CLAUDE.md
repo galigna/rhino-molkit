@@ -27,9 +27,8 @@ update it when a decision changes.
 - **Type hints on everything**: parameters, return values, and module constants. Core must pass
   `mypy --strict` (`ignore_missing_imports` only for rdkit/gemmi).
 - **Frozen dataclasses** for all data: `@dataclass(frozen=True)`, with `tuple` instead of `list`
-  and no mutable defaults. Use `dataclasses.replace` to make modified copies. Validate invariants
-  in `__post_init__`.
-- **Short functions**: aim for ≤ 20 lines and one job each. Extract helpers early.
+  and no mutable defaults. Use `dataclasses.replace` to make modified copies.
+- **Short functions**: aim for ≤ 20 lines and one job each.
 - **No duplication**: element data, presets, and constants are defined once. Search before
   writing a helper.
 - Pure functions in core: no global state, no I/O except in `sources/` and `stl.py`'s byte output,
@@ -71,3 +70,19 @@ pytest --cov=molkit.core --cov-branch --cov-fail-under=100
 - Don't add dependencies, files, or features outside the current milestone without asking.
 - If a spec decision turns out to be wrong in practice (for example, test-print results), propose
   the change to SPEC.md before coding around it.
+
+## Code style: lazy senior
+- The best code is no code. Before writing anything, check if RDKit, gemmi,
+  RhinoCommon, or the Python standard library already does it.
+- Write the simplest thing that works for the current milestone. No speculative
+  features, no "might need later" parameters, no abstractions until there are
+  3 real uses.
+- Prefer data over logic: lookup tables (dicts, enums) instead of if/elif chains.
+- Functions do one thing and fit on one screen. No classes where a function
+  plus a dataclass will do.
+- No defensive clutter: validate only at boundaries (user input, files, network),
+  trust internal code.
+- No comments that restate the code. Comment only the "why" (chemistry facts,
+  tolerances, Rhino quirks).
+- Readability beats cleverness: short means fewer concepts, not dense one-liners.
+- Deleting code is a win. When changing something, remove what it replaces.

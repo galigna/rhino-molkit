@@ -121,8 +121,8 @@ Vec3(x: float, y: float, z: float)                  # +, -, *, dot, cross, norm,
 
 Element(symbol, atomic_number, mass, covalent_radius, vdw_radius, color_rgb)
 
-Atom(element: str, position: Vec3, formal_charge: int = 0)
-Bond(a: int, b: int, order: BondOrder)              # invariant: a < b, both valid indices
+Atom(element: str, position: Vec3)                  # element: canonical symbol, e.g. "Cl"
+Bond(a: int, b: int, order: BondOrder)              # indices into Molecule.atoms, either order
 SourceInfo(kind: Literal["pubchem", "cif"], identifier: str)
 Molecule(name: str, atoms: tuple[Atom, ...], bonds: tuple[Bond, ...], source: SourceInfo)
     .without_hydrogens() -> Molecule                # reindexes atoms and bonds
@@ -233,6 +233,7 @@ which is inside the ball. Triple-bond wall: 3.5 − 2.3 = 1.2 mm ≥ 1.0. These 
 
 All of these subclass `MolkitError`, and commands catch `MolkitError` to show a readable message:
 
+- `UnknownElementError`: symbol not in the element table
 - `CompoundNotFoundError`
 - `No3DConformerError`
 - `NetworkError`
