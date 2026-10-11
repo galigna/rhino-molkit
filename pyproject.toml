@@ -1,6 +1,6 @@
 [project]
 name = "rhino-molkit"
-version = "0.0.0"
+version = "0.1.0"  # keep equal to rhino/molkit.rhproj
 description = "Rhino 8 plugin that generates 3D-printable molecular puzzles."
 requires-python = ">=3.9"
 # Pinned to the newest releases with cp39 wheels: Rhino 8 runs CPython 3.9.
