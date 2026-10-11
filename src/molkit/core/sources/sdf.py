@@ -39,7 +39,7 @@ def parse_sdf(
         mol = _generate_3d(mol, source)
     if kekulize:
         Chem.Kekulize(mol, clearAromaticFlags=True)
-    return Molecule(source.identifier, _atoms(mol), _bonds(mol), source)
+    return molecule_from_rdkit(mol, source.identifier, source)
 
 
 def _generate_3d(mol: Chem.Mol, source: SourceInfo) -> Chem.Mol:
@@ -53,6 +53,11 @@ def _generate_3d(mol: Chem.Mol, source: SourceInfo) -> Chem.Mol:
         )
     AllChem.MMFFOptimizeMolecule(mol, maxIters=2000)
     return mol
+
+
+def molecule_from_rdkit(mol: Chem.Mol, name: str, source: SourceInfo) -> Molecule:
+    """A Molecule from an RDKit molecule with a 3D conformer; validates elements and bond types."""
+    return Molecule(name, _atoms(mol), _bonds(mol), source)
 
 
 def _atoms(mol: Chem.Mol) -> tuple[Atom, ...]:

@@ -1,0 +1,23 @@
+# Hand-made: methane with H1 disordered over two positions; group 2 must be dropped.
+data_methane_disorder
+_cell_length_a 10
+_cell_length_b 10
+_cell_length_c 10
+_cell_angle_alpha 90
+_cell_angle_beta 90
+_cell_angle_gamma 90
+_symmetry_space_group_name_H-M 'P 1'
+loop_
+_atom_site_label
+_atom_site_type_symbol
+_atom_site_fract_x
+_atom_site_fract_y
+_atom_site_fract_z
+_atom_site_occupancy
+_atom_site_disorder_group
+C1  C 0.5     0.5     0.5     1   .
+H1A H 0.56293 0.56293 0.56293 0.6 1
+H1B H 0.43707 0.43707 0.43707 0.4 2
+H2  H 0.56293 0.43707 0.43707 1   .
+H3  H 0.43707 0.56293 0.43707 1   .
+H4  H 0.43707 0.43707 0.56293 1   .

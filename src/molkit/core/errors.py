@@ -29,3 +29,11 @@ class NetworkError(MolkitError):
 
 class ModelDataError(MolkitError):
     """Stored model data is corrupt or from an unsupported schema version."""
+
+
+class CifParseError(MolkitError):
+    """A CIF file is unreadable or has no atom sites."""
+
+
+class NoMoleculeFoundError(MolkitError):
+    """A crystal structure contains no complete, discrete molecule (e.g. a polymer)."""

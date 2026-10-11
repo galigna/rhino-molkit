@@ -89,7 +89,7 @@ repo/
 
 ```
 name ─► pubchem.fetch_sdf ─► sdf.parse ─┐
-CIF  ─► cif.parse ──────────────────────┴─► Molecule ─┬─► ballstick.build ─► BallStickSpec ─► rhino.geometry
+CIF  ─► cif.parse_cif ────────────────────┴─► Molecule ─┬─► ballstick.build ─► BallStickSpec ─► rhino.geometry
                                                       └─► puzzle.build_pieces ► PieceSpec[] ───► rhino.geometry ─► rhino.export ─► stl.write
 ```
 
@@ -237,9 +237,11 @@ All of these subclass `MolkitError`, and commands catch `MolkitError` to show a 
 - `CompoundNotFoundError`
 - `No3DConformerError`
 - `NetworkError`
-- `CifParseError`
-- `NoMoleculeFoundError`
-- `BondPerceptionWarning` (bond orders are set to single when RDKit can't assign them)
+- `CifParseError`: unreadable CIF, or no data block with atom sites
+- `NoMoleculeFoundError`: no discrete molecule in the crystal (a polymer or framework)
+
+Not errors: guessed (all-single) bond orders and missing hydrogens come back as notes from
+`parse_cif` for the command to print.
 - `ModelDataError`: stored model JSON is corrupt or from an unsupported schema version
 
 PubChem's usage policy allows up to 5 requests per second. molkit makes one request per command, so
@@ -267,7 +269,7 @@ committed.
 | M9 | Rhino puzzle geometry + `MolkitPuzzle`. **Test-print** methane first, then ethylene and benzene (FDM), then tune the defaults. | Smoke test: every piece is a closed, valid solid. Print notes are recorded in `docs/print-tests.md`. |
 | M10 | `stl.binary_stl` + `manifest` (file names, assembly JSON), `rhino/export`, `MolkitExportStl`. STL meshes use a fixed 0.02 mm max deviation for every preset (a per-preset parameter would invalidate stored models). | Core: binary STL header, triangle count, and byte layout; manifest content. Smoke test: files open in a slicer. |
 | M10b | 3D fallback: when PubChem has no 3D record (e.g. > 50 heavy atoms, like α-cyclodextrin), fetch the 2D SDF and generate coordinates with RDKit (add H, ETKDGv3 with macrocycle torsions, MMFF cleanup). The source records that coordinates were computed, and `MolkitInfo` shows it; error messages explain PubChem's limits. | Core: fake transport serving 2D → 3D molecule with sensible bond lengths; generation failure raises. Smoke test: α-cyclodextrin builds as ball-and-stick. |
-| M11 | `cif.parse`: gemmi read, symmetry expansion, disorder (highest occupancy / altloc A), RDKit connectivity + bond orders, one-molecule extraction. | Fixtures: a small organic CIF (e.g. urea, aspirin) has the expected formula and bond count. A molecule split across cell edges comes out whole. Malformed CIF raises. |
+| M11 | `cif.parse_cif`: gemmi reads the first block with atom sites and expands it to the unit cell; disorder groups 0 and 1 are kept; a 3×3×3 block of cells is split into molecules by RDKit connectivity; the largest molecule whose centroid lies in the home cell is kept (a fragment bigger than the cell's site count means a polymer or framework → `NoMoleculeFoundError`); RDKit assigns bond orders, falling back to single bonds. Returns `(Molecule, notes)`; notes cover guessed bond orders and missing hydrogens. | Real fixture: aspirin (COD 2104857, P2₁/c, Z = 4): C9H8O4, 21 bonds, 6 aromatic + 2 C=O. Hand-made fixtures: methane split across the cell edge, disordered H, CO2 without H, an endless carbon chain, Fe, garbage and block without atom sites. |
 | M12 | `MolkitImportCif`. | Smoke test with the fixture CIFs. |
 | M13 | Packaging: `.rhproj`, Yak build, install on a clean Rhino 8; README with screenshots, a GIF, a printed photo, and an architecture diagram; tag `v0.1.0`. | Fresh install runs every command. |
 
