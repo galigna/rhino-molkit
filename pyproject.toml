@@ -26,9 +26,11 @@ python_version = "3.9"
 strict = true
 files = ["src/molkit/core"]
 mypy_path = "src"
+# rdkit 2025.9.2 ships stubs with a syntax error; core only imports rdkit/gemmi, typed as Any.
+no_site_packages = true
 
 [[tool.mypy.overrides]]
-module = ["rdkit.*", "gemmi.*"]
+module = ["rdkit", "rdkit.*", "gemmi", "gemmi.*"]
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]

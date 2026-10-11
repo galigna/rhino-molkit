@@ -129,7 +129,7 @@ Molecule(name: str, atoms: tuple[Atom, ...], bonds: tuple[Bond, ...], source: So
     .without_hydrogens() -> Molecule                # reindexes atoms and bonds
     .neighbors(i) -> tuple[int, ...]
 
-ModelParams(scale_mm_per_a, ball_radius_factor, stick_radius_mm, include_hydrogens, aromatic_mode)
+ModelParams(scale_mm_per_a, ball_radius_factor, stick_radius_mm, include_hydrogens, kekulize)
 PuzzleParams(preset_name, clearance_mm, peg_length_mm, hole_extra_depth_mm, peg_radius_mm,
              triple_peg_radius_mm, flat_depth_mm, chamfer_mm, min_wall_mm)
 
@@ -196,8 +196,8 @@ the element's CPK colour.
   bond** and used by both halves, so the peg and hole always line up.
 - **Hole size:** the hole's profile is the peg's profile offset outward by `clearance`. Hole depth
   is `peg_length + hole_extra_depth`, and the hole may extend into the ball.
-- **Aromaticity:** `aromatic_mode = "aromatic"` (the default) runs RDKit aromaticity perception.
-  `"kekule"` keeps alternating single and double bonds.
+- **Aromaticity:** by default, RDKit's aromaticity perception marks ring bonds as aromatic.
+  `kekulize = true` turns them back into alternating single and double bonds.
 - **Validation** (`validate.py`) returns a tuple of `Issue(severity, atom_index, message)` for:
   - wall thickness `stick_radius − (peg_radius + clearance) < min_wall`;
   - neighbouring balls overlapping;
@@ -222,7 +222,7 @@ the element's CPK colour.
 | `chamfer_mm` (peg lead-in) | 0.3 | 0.2 |
 | `min_wall_mm` | 1.0 | 0.6 |
 | `include_hydrogens` | true | true |
-| `aromatic_mode` | `"aromatic"` | `"aromatic"` |
+| `kekulize` | false | false |
 | STL mesh: max deviation | 0.05 mm | 0.02 mm |
 
 Sanity check with FDM settings on a C–H bond: 21.8 mm between centres, C ball 8.5 mm, H ball 6.0 mm.
@@ -235,6 +235,7 @@ which is inside the ball. Triple-bond wall: 3.5 − 2.3 = 1.2 mm ≥ 1.0. These 
 All of these subclass `MolkitError`, and commands catch `MolkitError` to show a readable message:
 
 - `UnknownElementError`: symbol not in the element table
+- `SdfParseError`: unreadable SDF, or a bond type with no peg shape (dative, "any")
 - `CompoundNotFoundError`
 - `No3DConformerError`
 - `NetworkError`
