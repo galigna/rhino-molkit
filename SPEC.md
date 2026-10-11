@@ -245,8 +245,10 @@ All of these subclass `MolkitError`, and commands catch `MolkitError` to show a 
 - `SchemaVersionError`
 - `PrintabilityError`
 
-Following PubChem's usage policy, requests are throttled to at most 5 per second and send a
-User-Agent that identifies molkit.
+PubChem's usage policy allows up to 5 requests per second. molkit makes one request per command, so
+it needs no throttling. Requests send a User-Agent that identifies molkit and time out after 30 s.
+PubChem answers 404 both for unknown names ("No CID found") and for compounds with no 3D record.
+The message body tells them apart.
 
 ## 10. Milestones (build order)
 
@@ -259,7 +261,7 @@ committed.
 | M0 | Scaffold: `pyproject.toml`, ruff, mypy, pytest + coverage, CI on Py 3.9, empty packages, `test_architecture.py`. **Check that `rdkit` and `gemmi` install in Rhino 8 CPython, and pin the versions.** | CI green. Architecture test fails on a planted `import Rhino`. |
 | M1 | `vec`, `elements`, `model` (validation, `without_hydrogens`, `neighbors`), `errors`. | Unit tests for vector math, invariants, H removal and reindexing. |
 | M2 | `sdf.parse` (RDKit, keeps Hs, aromatic/kekule modes) using fixture SDFs. | Methane has 5 atoms and 4 single bonds, with H–C–H angles of 109.5° ± 1°. Benzene aromatic gives 6 aromatic C–C bonds, kekule gives 3+3. |
-| M3 | `pubchem.fetch_sdf` with an injected HTTP function, throttling, and error mapping. | Fake transport for 200 / 404 / no-3D / timeout. No real network in tests. |
+| M3 | `pubchem.fetch_sdf` with an injected HTTP function and error mapping. | Fake transport for 200 / 404 / no-3D / timeout. No real network in tests. |
 | M4 | `params` + presets, and `serialize` round-trip for `PuzzleModel`. | Round-trip equality. Unknown schema version raises. |
 | M5 | `ballstick.build`. | Ball radii and colours; sticks end at the midpoints; the H toggle works. |
 | M6 | **First Rhino slice:** `units`, `layers`, `blocks`, `geometry` (ball-and-stick), `storage`, and the `MolkitFetch` and `MolkitInfo` commands. | Manual smoke checklist in `docs/smoke-test.md`: methane appears with the right layers and colours, and `MolkitInfo` reads the anchor. |

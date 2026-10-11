@@ -16,4 +16,12 @@ class SdfParseError(MolkitError):
 
 
 class No3DConformerError(MolkitError):
-    """A structure has only 2D coordinates."""
+    """A structure has only 2D coordinates, or PubChem has no 3D record for it."""
+
+
+class CompoundNotFoundError(MolkitError):
+    """PubChem knows no compound by that name."""
+
+
+class NetworkError(MolkitError):
+    """PubChem could not be reached or answered with an unexpected error."""
