@@ -65,12 +65,7 @@ repo/
 │  │  │  └─ cif.py           # CIF -> Molecule (gemmi + RDKit)
 │  │  ├─ ballstick.py        # Molecule + Params -> BallStickSpec
 │  │  ├─ info.py             # formula + MolkitInfo summary
-│  │  ├─ puzzle/
-│  │  │  ├─ gender.py        # which end of a bond gets the peg
-│  │  │  ├─ keying.py        # shared key-reference vector per bond
-│  │  │  ├─ profiles.py      # bond order -> PegProfile
-│  │  │  ├─ pieces.py        # Molecule + params -> tuple[PieceSpec]
-│  │  │  └─ validate.py      # printability checks (wall, overlap, depth)
+│  │  ├─ puzzle.py           # pieces: gender, key reference, profiles; printability check
 │  │  ├─ manifest.py         # assembly manifest
 │  │  └─ stl.py              # triangles -> binary STL bytes
 │  └─ rhino/                 # thin adapter: specs -> Rhino geometry
@@ -95,7 +90,7 @@ repo/
 ```
 name ─► pubchem.fetch_sdf ─► sdf.parse ─┐
 CIF  ─► cif.parse ──────────────────────┴─► Molecule ─┬─► ballstick.build ─► BallStickSpec ─► rhino.geometry
-                                                      └─► puzzle.build ────► PieceSpec[] ───► rhino.geometry ─► rhino.export ─► stl.write
+                                                      └─► puzzle.build_pieces ► PieceSpec[] ───► rhino.geometry ─► rhino.export ─► stl.write
 ```
 
 **Boundary rule:** `core` returns plain frozen dataclasses that hold every number the geometry
@@ -139,10 +134,13 @@ BallStickSpec(balls: tuple[BallSpec, ...], sticks: tuple[StickSpec, ...])
 class Gender(Enum): PEG, HOLE
 class ProfileKind(Enum): ROUND, D_FLAT, DOUBLE_FLAT
 PegProfile(kind, radius, flat_depth)                # flat_depth unused for ROUND
-Joint(bond_index, partner_atom, direction: Vec3,    # unit vector, piece centre -> partner
+Joint(bond_index, partner_index, direction: Vec3,   # unit vector, piece centre -> partner
       key_ref: Vec3,                                # unit, ⟂ direction; shared by both halves
-      stub_length, gender, profile, peg_length, hole_depth, clearance)
+      length,                                       # centre -> bond midpoint (stub end)
+      gender, profile,                              # hole profiles already include clearance
+      depth, chamfer)                               # peg length / hole depth; peg lead-in
 PieceSpec(atom_index, element, center, ball_radius, stick_radius, color_rgb, joints: tuple[Joint, ...])
+Issue(atom_index, message)                          # from puzzle.check(pieces, params)
 
 PuzzleModel(model_id: str, molecule: Molecule, params: Params)   # what is persisted
 ```
@@ -163,7 +161,7 @@ everything with that `model_id` except the anchor, then rebuilds.
 |---|---|
 | `MolkitFetch` | Asks for a compound name (option: `Kekulize`), fetches the PubChem 3D SDF, and builds the ball-and-stick model plus its anchor. |
 | `MolkitImportCif` | Picks a `.cif` file, extracts one molecule, and builds the ball-and-stick model plus its anchor. |
-| `MolkitPuzzle` | Picks a model's anchor or any object in the model, then builds the puzzle pieces on `Molkit::<name>::Pieces`. Printability warnings are printed to the command line. |
+| `MolkitPuzzle` | Picks a model's anchor or any object in the model, then builds the puzzle pieces on `Molkit::<name>::Pieces`. If `puzzle.check` reports issues, they are printed and no pieces are built. |
 | `MolkitSettings` | Picks a model and edits its parameters with command-line options generated from the `Params` fields (number options limited to 0.001–1000), plus `FDM`/`Resin` options that apply a preset but keep the hydrogen choice. Enter saves to the anchor and regenerates. |
 | `MolkitRegenerate` | Picks a model and rebuilds all of its geometry from the anchor data. |
 | `MolkitExportStl` | Picks a model and a folder. Writes `<name>_<idx:03>_<El>.stl` for each piece and `<name>_manifest.json`. |
@@ -197,13 +195,16 @@ the element's CPK colour.
 - **Aromaticity:** by default, RDKit's aromaticity perception marks ring bonds as aromatic.
   The `Kekulize` import option turns them back into alternating single and double bonds. It is
   applied while reading the SDF, so it is not a stored parameter.
-- **Validation** (`validate.py`) returns a tuple of `Issue(severity, atom_index, message)` for:
-  - wall thickness `stick_radius − (peg_radius + clearance) < min_wall`;
-  - neighbouring balls overlapping;
-  - a hole reaching past the ball's centre;
-  - a peg longer than the partner's available depth.
+- **Validation:** `puzzle.check(pieces, params)` returns a tuple of `Issue(atom_index, message)`
+  for:
+  - wall thickness `stick_radius − (peg_radius + clearance) < min_wall` around a hole;
+  - a joint (bond midpoint) inside its own ball;
+  - any two balls overlapping, bonded or not;
+  - a hole reaching past the ball's centre.
 
-  Errors stop piece generation. Warnings are printed.
+  Every issue would give a broken print, so there are no warnings: any issue stops piece
+  generation. (A peg can't be longer than its hole: hole depth is peg length plus
+  `hole_extra_depth` by construction.)
 
 ## 8. Default parameters
 
@@ -241,7 +242,6 @@ All of these subclass `MolkitError`, and commands catch `MolkitError` to show a 
 - `NoMoleculeFoundError`
 - `BondPerceptionWarning` (bond orders are set to single when RDKit can't assign them)
 - `ModelDataError`: stored model JSON is corrupt or from an unsupported schema version
-- `PrintabilityError`
 
 PubChem's usage policy allows up to 5 requests per second. molkit makes one request per command, so
 it needs no throttling. Requests send a User-Agent that identifies molkit and time out after 30 s.
@@ -264,7 +264,7 @@ committed.
 | M5 | `ballstick.build`. | Ball radii and colours; sticks end at the midpoints; the H toggle works. |
 | M6 | **First Rhino slice:** `rhino/draw.py` (layers, unit scaling, ball blocks, sticks), `rhino/storage.py`, `core/info.py` (formula + summary), and the `MolkitFetch` and `MolkitInfo` commands. | Manual smoke checklist in `docs/smoke-test.md`: methane appears with the right layers and colours, and `MolkitInfo` reads the anchor. |
 | M7 | `MolkitSettings` + `MolkitRegenerate`. Core: `PRESETS`, `with_preset`, `option_name`. | Core: preset keeps hydrogens; every param gets a distinct valid Rhino option name. Smoke test: change the scale and the model rebuilds. |
-| M8 | Puzzle core: `gender`, `keying`, `profiles`, `pieces`, `validate`. | Gender rule incl. ties; key_ref ⟂ direction and identical on both halves; ethylene → D_FLAT, benzene → DOUBLE_FLAT, acetylene → thick ROUND; validation catches thin walls and overlaps. |
+| M8 | Puzzle core: `puzzle.py` (`build_pieces`, `check`), sharing `visible_atoms` and `ball_radius` with `ballstick.py`. | Gender rule incl. ties; key_ref ⟂ direction and identical on both halves; ethylene → D_FLAT, benzene → DOUBLE_FLAT, acetylene → thick ROUND; validation catches thin walls and overlaps. |
 | M9 | Rhino puzzle geometry + `MolkitPuzzle`. **Test-print** methane first, then ethylene and benzene (FDM), then tune the defaults. | Smoke test: every piece is a closed, valid solid. Print notes are recorded in `docs/print-tests.md`. |
 | M10 | `stl.write` + `manifest`, `rhino/export`, `MolkitExportStl`. | Core: binary STL header, triangle count, and byte layout; manifest content. Smoke test: files open in a slicer. |
 | M11 | `cif.parse`: gemmi read, symmetry expansion, disorder (highest occupancy / altloc A), RDKit connectivity + bond orders, one-molecule extraction. | Fixtures: a small organic CIF (e.g. urea, aspirin) has the expected formula and bond count. A molecule split across cell edges comes out whole. Malformed CIF raises. |
