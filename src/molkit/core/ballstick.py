@@ -25,6 +25,7 @@ class StickSpec:
 
     atom_index: int
     bond_index: int
+    element: str
     start: Vec3
     end: Vec3
     radius: float
@@ -68,4 +69,6 @@ def _half_stick(molecule: Molecule, bond_index: int, atom_index: int, params: Pa
     atom = molecule.atoms[atom_index]
     start = atom.position * params.scale_mm_per_a
     color = element(atom.element).color_rgb
-    return StickSpec(atom_index, bond_index, start, midpoint, params.stick_radius_mm, color)
+    return StickSpec(
+        atom_index, bond_index, atom.element, start, midpoint, params.stick_radius_mm, color
+    )
