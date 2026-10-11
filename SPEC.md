@@ -233,6 +233,10 @@ which is inside the ball. Triple-bond wall: 3.5 − 2.3 = 1.2 mm ≥ 1.0. These 
 
 All of these subclass `MolkitError`, and commands catch `MolkitError` to show a readable message:
 
+- `ValidationError` (also a `ValueError`): invalid values in a core dataclass
+  - `UnknownElementError`: symbol not in the element table
+- `ZeroVectorError` (also a `ValueError`): direction asked of a zero-length vector
+- `AtomIndexError` (also an `IndexError`): atom index out of range or not in the bond
 - `CompoundNotFoundError`
 - `No3DConformerError`
 - `NetworkError`
