@@ -18,8 +18,8 @@ Models are rebuilt from data stored on the model (a locked anchor point), not ed
 ## Try it in Rhino 8
 
 Until the Yak package exists, follow the one-time setup in
-[docs/smoke-test.md](docs/smoke-test.md): add `src` to the Script Editor's Python 3 module search
-paths, then run `_-RunPythonScript "<repo>\rhino\commands\MolkitFetch.py"`.
+[docs/smoke-test.md](docs/smoke-test.md): put a `molkit-dev.pth` file pointing at `src` into
+Rhino's Python `site-packages`, then run `_-RunPythonScript "<repo>\rhino\commands\MolkitFetch.py"`.
 
 The first run installs RDKit and gemmi into Rhino's Python (about 40 MB). Rhino's installer times
 out after 15 s, so on a slow connection the first attempt may fail. Run it again.
