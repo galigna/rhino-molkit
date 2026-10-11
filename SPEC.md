@@ -107,7 +107,8 @@ testable without Rhino.
 
 **Runtime:** Rhino 8 runs CPython **3.9**, so all code targets 3.9. `rdkit` and `gemmi` are **hard
 dependencies**, declared as Script Editor package requirements and pinned to versions that ship
-cp39 wheels for Windows and macOS (pinned in M0).
+cp39 wheels for Windows and macOS: `rdkit==2025.9.2` (the last RDKit release supporting 3.9) and
+`gemmi==0.7.5`.
 
 ## 5. Data model (core)
 
@@ -282,4 +283,5 @@ committed.
 ## 12. Open items
 
 - License: assumed **MIT** unless changed.
-- Exact `rdkit` and `gemmi` pins depend on M0 (newest releases with cp39 wheels on win-x64 and macOS).
+- Install of the pinned `rdkit`/`gemmi` inside Rhino 8 still needs to be confirmed on a real Rhino
+  (verified so far on standalone CPython 3.9).

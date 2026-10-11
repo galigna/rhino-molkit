@@ -3,10 +3,11 @@ name = "rhino-molkit"
 version = "0.0.0"
 description = "Rhino 8 plugin that generates 3D-printable molecular puzzles."
 requires-python = ">=3.9"
-dependencies = []
+# Pinned to the newest releases with cp39 wheels: Rhino 8 runs CPython 3.9.
+dependencies = ["rdkit==2025.9.2", "gemmi==0.7.5"]
 
 [dependency-groups]
-dev = ["pytest>=8", "pytest-cov>=5", "ruff>=0.6"]
+dev = ["pytest>=8", "pytest-cov>=5", "ruff>=0.6", "mypy>=1.10"]
 
 [tool.ruff]
 target-version = "py39"
@@ -19,6 +20,16 @@ ignore = ["SIM300"]  # "Yoda" check misfires on UPPER_CASE test constants
 
 [tool.ruff.lint.per-file-ignores]
 "tests/**" = ["ANN"]
+
+[tool.mypy]
+python_version = "3.9"
+strict = true
+files = ["src/molkit/core"]
+mypy_path = "src"
+
+[[tool.mypy.overrides]]
+module = ["rdkit.*", "gemmi.*"]
+ignore_missing_imports = true
 
 [tool.pytest.ini_options]
 pythonpath = ["src"]
