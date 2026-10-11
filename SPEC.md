@@ -64,6 +64,7 @@ repo/
 │  │  │  ├─ pubchem.py       # PUG REST client (injectable HTTP)
 │  │  │  └─ cif.py           # CIF -> Molecule (gemmi + RDKit)
 │  │  ├─ ballstick.py        # Molecule + Params -> BallStickSpec
+│  │  ├─ info.py             # formula + MolkitInfo summary
 │  │  ├─ puzzle/
 │  │  │  ├─ gender.py        # which end of a bond gets the peg
 │  │  │  ├─ keying.py        # shared key-reference vector per bond
@@ -73,12 +74,9 @@ repo/
 │  │  ├─ manifest.py         # assembly manifest
 │  │  └─ stl.py              # triangles -> binary STL bytes
 │  └─ rhino/                 # thin adapter: specs -> Rhino geometry
-│     ├─ units.py            # doc-unit scaling
-│     ├─ layers.py
-│     ├─ blocks.py           # one block definition per element/radius
-│     ├─ geometry.py         # BallStickSpec / PieceSpec -> Brep/Mesh
-│     ├─ storage.py          # anchor object + user dictionary I/O
-│     ├─ export.py           # Mesh -> triangles -> core.stl
+│     ├─ draw.py             # layers, unit scaling, ball blocks, specs -> Breps
+│     ├─ storage.py          # user-text tags + anchor object I/O
+│     ├─ export.py           # Mesh -> triangles -> core.stl (M10)
 │     └─ commands.py         # command bodies (get input, call core, draw)
 ├─ rhino/
 │  ├─ molkit.rhproj          # Script Editor project (build -> .rhp + .yak)
@@ -152,12 +150,12 @@ PuzzleModel(model_id: str, molecule: Molecule, params: Params)   # what is persi
 **Persistence:** `serialize.dumps(PuzzleModel) -> str` and `serialize.loads(str) -> PuzzleModel`
 write JSON that includes `schema_version`. Unknown versions and corrupt data raise `ModelDataError`.
 
-**Storage in Rhino:** each model gets one locked **anchor** object (a point at the molecule's
-centroid on `Molkit::<name>::_data`). It holds the serialized `PuzzleModel` in its UserDictionary
-under `molkit.model`. Every generated object carries the user strings `molkit.model_id`,
-`molkit.role` (`ball|stick|piece`), and `molkit.atom_index`. Copying the anchor between files
-copies the model. Regenerating deletes everything with that `model_id` except the anchor, then
-rebuilds.
+**Storage in Rhino:** each model gets one **anchor** object, a point at the world origin on the
+locked layer `Molkit::<name>::_data`. Its Attribute User Text `molkit.model` holds the serialized
+`PuzzleModel`. Every molkit object, the anchor included, carries the user text `molkit.model_id`
+and `molkit.role` (`anchor|ball|stick|piece`); balls, sticks and pieces also carry
+`molkit.atom_index`. Copying the anchor between files copies the model. Regenerating deletes
+everything with that `model_id` except the anchor, then rebuilds.
 
 ## 6. Commands
 
@@ -264,7 +262,7 @@ committed.
 | M3 | `pubchem.fetch_sdf` with an injected HTTP function and error mapping. | Fake transport for 200 / 404 / no-3D / timeout. No real network in tests. |
 | M4 | `params` + presets, and `serialize` round-trip for `PuzzleModel`. | Round-trip equality. Unknown schema version and corrupt data raise. |
 | M5 | `ballstick.build`. | Ball radii and colours; sticks end at the midpoints; the H toggle works. |
-| M6 | **First Rhino slice:** `units`, `layers`, `blocks`, `geometry` (ball-and-stick), `storage`, and the `MolkitFetch` and `MolkitInfo` commands. | Manual smoke checklist in `docs/smoke-test.md`: methane appears with the right layers and colours, and `MolkitInfo` reads the anchor. |
+| M6 | **First Rhino slice:** `rhino/draw.py` (layers, unit scaling, ball blocks, sticks), `rhino/storage.py`, `core/info.py` (formula + summary), and the `MolkitFetch` and `MolkitInfo` commands. | Manual smoke checklist in `docs/smoke-test.md`: methane appears with the right layers and colours, and `MolkitInfo` reads the anchor. |
 | M7 | `MolkitSettings` + `MolkitRegenerate`. | Core: parameter-update helpers are tested. Smoke test: change the scale and the model rebuilds. |
 | M8 | Puzzle core: `gender`, `keying`, `profiles`, `pieces`, `validate`. | Gender rule incl. ties; key_ref ⟂ direction and identical on both halves; ethylene → D_FLAT, benzene → DOUBLE_FLAT, acetylene → thick ROUND; validation catches thin walls and overlaps. |
 | M9 | Rhino puzzle geometry + `MolkitPuzzle`. **Test-print** methane first, then ethylene and benzene (FDM), then tune the defaults. | Smoke test: every piece is a closed, valid solid. Print notes are recorded in `docs/print-tests.md`. |
