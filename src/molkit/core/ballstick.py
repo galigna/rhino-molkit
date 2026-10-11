@@ -40,11 +40,7 @@ class BallStickSpec:
 
 def build(molecule: Molecule, params: Params) -> BallStickSpec:
     """Lay out balls and half-sticks. Atom and bond indices always refer to `molecule`."""
-    shown = [
-        i
-        for i, atom in enumerate(molecule.atoms)
-        if params.include_hydrogens or atom.element != "H"
-    ]
+    shown = visible_atoms(molecule, params)
     balls = tuple(_ball(molecule, i, params) for i in shown)
     sticks = tuple(
         _half_stick(molecule, bond_index, atom_index, params)
@@ -55,11 +51,25 @@ def build(molecule: Molecule, params: Params) -> BallStickSpec:
     return BallStickSpec(balls, sticks)
 
 
+def visible_atoms(molecule: Molecule, params: Params) -> list[int]:
+    """Indices of the atoms to build; hydrogens are skipped when params hide them."""
+    return [
+        i
+        for i, atom in enumerate(molecule.atoms)
+        if params.include_hydrogens or atom.element != "H"
+    ]
+
+
+def ball_radius(symbol: str, params: Params) -> float:
+    """Ball radius in mm: a fraction of the van der Waals radius, scaled."""
+    return element(symbol).vdw_radius * params.ball_radius_factor * params.scale_mm_per_a
+
+
 def _ball(molecule: Molecule, i: int, params: Params) -> BallSpec:
     atom = molecule.atoms[i]
-    el = element(atom.element)
-    radius = el.vdw_radius * params.ball_radius_factor * params.scale_mm_per_a
-    return BallSpec(i, atom.element, atom.position * params.scale_mm_per_a, radius, el.color_rgb)
+    center = atom.position * params.scale_mm_per_a
+    radius = ball_radius(atom.element, params)
+    return BallSpec(i, atom.element, center, radius, element(atom.element).color_rgb)
 
 
 def _half_stick(molecule: Molecule, bond_index: int, atom_index: int, params: Params) -> StickSpec:
