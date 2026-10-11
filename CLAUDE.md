@@ -27,8 +27,7 @@ update it when a decision changes.
 - **Type hints on everything**: parameters, return values, and module constants. Core must pass
   `mypy --strict` (`ignore_missing_imports` only for rdkit/gemmi).
 - **Frozen dataclasses** for all data: `@dataclass(frozen=True)`, with `tuple` instead of `list`
-  and no mutable defaults. Use `dataclasses.replace` to make modified copies. Validate invariants
-  in `__post_init__`.
+  and no mutable defaults. Use `dataclasses.replace` to make modified copies.
 - **Short functions**: aim for ≤ 20 lines and one job each. Extract helpers early.
 - **No duplication**: element data, presets, and constants are defined once. Search before
   writing a helper.

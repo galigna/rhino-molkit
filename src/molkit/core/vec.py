@@ -5,10 +5,6 @@ from __future__ import annotations
 import math
 from dataclasses import dataclass
 
-from molkit.core.errors import ZeroVectorError
-
-_EPS = 1e-12
-
 
 @dataclass(frozen=True)
 class Vec3:
@@ -24,14 +20,8 @@ class Vec3:
     def __sub__(self, other: Vec3) -> Vec3:
         return Vec3(self.x - other.x, self.y - other.y, self.z - other.z)
 
-    def __neg__(self) -> Vec3:
-        return Vec3(-self.x, -self.y, -self.z)
-
     def __mul__(self, k: float) -> Vec3:
         return Vec3(self.x * k, self.y * k, self.z * k)
-
-    def __rmul__(self, k: float) -> Vec3:
-        return self * k
 
     def dot(self, other: Vec3) -> float:
         """Dot product."""
@@ -51,19 +41,4 @@ class Vec3:
 
     def unit(self) -> Vec3:
         """Vector of length 1 in the same direction."""
-        return self * (1.0 / self._nonzero_norm())
-
-    def distance_to(self, other: Vec3) -> float:
-        """Distance between two points."""
-        return (self - other).norm()
-
-    def angle_to(self, other: Vec3) -> float:
-        """Angle between two directions, in radians."""
-        cosine = self.dot(other) / (self._nonzero_norm() * other._nonzero_norm())
-        return math.acos(max(-1.0, min(1.0, cosine)))
-
-    def _nonzero_norm(self) -> float:
-        n = self.norm()
-        if n < _EPS:
-            raise ZeroVectorError(f"zero-length vector has no direction: {self}")
-        return n
+        return self * (1.0 / self.norm())
