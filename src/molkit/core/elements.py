@@ -4,7 +4,8 @@ Sources:
 - mass: IUPAC conventional standard atomic weights (u)
 - covalent_radius: Cordero et al., Dalton Trans. 2008 (Å; C is sp3)
 - vdw_radius: Bondi, J. Phys. Chem. 1964; Mantina et al., J. Phys. Chem. A 2009
-  where Bondi gives no value (B, Al, Ca) (Å)
+  where Bondi gives no value (B, Al, Ca) (Å). Metals Bondi doesn't cover (Fe, Co, Mn, Cr, ...)
+  are left out rather than guessed.
 - color_rgb: Jmol CPK colours
 """
 
@@ -44,9 +45,22 @@ ELEMENTS: dict[str, Element] = {
         Element("Cl", 17, 35.45, 1.02, 1.75, (31, 240, 31)),
         Element("K", 19, 39.098, 2.03, 2.75, (143, 64, 212)),
         Element("Ca", 20, 40.078, 1.76, 2.31, (61, 255, 0)),
+        Element("Ni", 28, 58.693, 1.24, 1.63, (80, 208, 80)),
+        Element("Cu", 29, 63.546, 1.32, 1.40, (200, 128, 51)),
+        Element("Zn", 30, 65.38, 1.22, 1.39, (125, 128, 176)),
+        Element("Ga", 31, 69.723, 1.22, 1.87, (194, 143, 143)),
+        Element("As", 33, 74.922, 1.19, 1.85, (189, 128, 227)),
         Element("Se", 34, 78.971, 1.20, 1.90, (255, 161, 0)),
         Element("Br", 35, 79.904, 1.20, 1.85, (166, 41, 41)),
+        Element("Pd", 46, 106.42, 1.39, 1.63, (0, 105, 133)),
+        Element("Ag", 47, 107.87, 1.45, 1.72, (192, 192, 192)),
+        Element("Cd", 48, 112.41, 1.44, 1.58, (255, 217, 143)),
+        Element("Sn", 50, 118.71, 1.39, 2.17, (102, 128, 128)),
         Element("I", 53, 126.904, 1.39, 1.98, (148, 0, 148)),
+        Element("Pt", 78, 195.08, 1.36, 1.72, (208, 208, 224)),
+        Element("Au", 79, 196.97, 1.36, 1.66, (255, 209, 35)),
+        Element("Hg", 80, 200.59, 1.32, 1.55, (184, 184, 208)),
+        Element("Pb", 82, 207.2, 1.46, 2.02, (87, 89, 97)),
     )
 }
 

@@ -10,6 +10,15 @@ def test_lookup_returns_carbon_data() -> None:
     assert element("C") == Element("C", 6, 12.011, 0.76, 1.70, (144, 144, 144))
 
 
+def test_lookup_returns_copper_data() -> None:
+    assert element("Cu") == Element("Cu", 29, 63.546, 1.32, 1.40, (200, 128, 51))
+
+
+@pytest.mark.parametrize("symbol", ["Ni", "Zn", "Pd", "Ag", "Pt", "Au", "Hg"])
+def test_table_covers_common_metals(symbol: str) -> None:
+    assert element(symbol).symbol == symbol
+
+
 @pytest.mark.parametrize("symbol", ["Xx", "CL", ""])
 def test_lookup_unknown_symbol_raises(symbol: str) -> None:
     with pytest.raises(UnknownElementError, match="unknown element"):

@@ -14,9 +14,10 @@ from Rhino.Input.Custom import GetOption, GetString, OptionDouble, OptionToggle
 from molkit.core.errors import MolkitError
 from molkit.core.info import describe
 from molkit.core.manifest import safe_name
-from molkit.core.model import PuzzleModel
+from molkit.core.model import Molecule, PuzzleModel, SourceInfo
 from molkit.core.params import FDM, PRESETS, Params, option_name, with_preset
 from molkit.core.puzzle import build_pieces, check
+from molkit.core.sources.cif import parse_cif
 from molkit.core.sources.pubchem import fetch_molecule
 from molkit.rhino import draw, export, storage
 
@@ -32,12 +33,35 @@ def fetch() -> None:
     except MolkitError as error:
         print(f"Molkit: {error}")
         return
+    _add_model(molecule)
+    if molecule.source.generated_3d:
+        print("Molkit: PubChem has no 3D structure for it; RDKit generated the coordinates")
+
+
+def import_cif() -> None:
+    """MolkitImportCif: build a ball-and-stick model of the molecule in a crystal structure."""
+    path = rs.OpenFileName("Open a CIF file", "CIF files (*.cif)|*.cif|All files (*.*)|*.*||")
+    if not path:
+        return
+    try:
+        with open(path, encoding="utf-8", errors="replace") as file:
+            text = file.read()
+        molecule, notes = parse_cif(text, SourceInfo("cif", os.path.basename(path)))
+    except (MolkitError, OSError) as error:
+        print(f"Molkit: {error}")
+        return
+    _add_model(molecule)
+    for note in notes:
+        print(f"Molkit: {note}")
+
+
+def _add_model(molecule: Molecule) -> None:
     doc = Rhino.RhinoDoc.ActiveDoc
     draw.add_model(doc, PuzzleModel(str(uuid.uuid4()), molecule, FDM))
     doc.Views.Redraw()
-    print(f"Molkit: built {name} ({len(molecule.atoms)} atoms, {len(molecule.bonds)} bonds)")
-    if molecule.source.generated_3d:
-        print("Molkit: PubChem has no 3D structure for it; RDKit generated the coordinates")
+    print(
+        f"Molkit: built {molecule.name} ({len(molecule.atoms)} atoms, {len(molecule.bonds)} bonds)"
+    )
 
 
 def info() -> None:

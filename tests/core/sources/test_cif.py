@@ -92,6 +92,17 @@ def test_element_outside_the_table_raises() -> None:
         _parse("iron.cif")
 
 
+def test_metal_complex_gets_single_bonds_and_a_note() -> None:
+    # RDKit's bond-order perception has no rules for metals and raises IndexError.
+    copper, notes = _parse("copper_dichloride.cif")
+    assert formula(copper) == "Cl2Cu"
+    assert _orders(copper) == {BondOrder.SINGLE: 2}
+    assert notes == (
+        "bond orders could not be determined, so every bond is single",
+        "the file has no hydrogen positions, so the model has none",
+    )
+
+
 def test_failed_bond_order_perception_falls_back_to_single_bonds(monkeypatch) -> None:
     def fail(mol, charge):
         raise ValueError("cannot assign")

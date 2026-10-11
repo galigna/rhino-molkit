@@ -100,7 +100,7 @@ def _with_bonds(images: list[Image], kekulize: bool) -> tuple[Chem.Mol, tuple[st
     ordered = Chem.Mol(mol)
     try:
         rdDetermineBonds.DetermineBondOrders(ordered, charge=0)
-    except (ValueError, RuntimeError):
+    except (ValueError, RuntimeError, IndexError):  # IndexError: RDKit has no rules for metals
         return mol, ("bond orders could not be determined, so every bond is single",)
     if kekulize:
         Chem.Kekulize(ordered, clearAromaticFlags=True)
