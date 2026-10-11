@@ -6,6 +6,7 @@ from dataclasses import dataclass, replace
 from enum import Enum
 from typing import Literal
 
+from molkit.core.params import Params
 from molkit.core.vec import Vec3
 
 
@@ -61,3 +62,12 @@ class Molecule:
             if b.a in new_index and b.b in new_index
         )
         return replace(self, atoms=tuple(self.atoms[i] for i in keep), bonds=bonds)
+
+
+@dataclass(frozen=True)
+class PuzzleModel:
+    """Everything needed to regenerate a model; this is what the Rhino anchor stores."""
+
+    model_id: str
+    molecule: Molecule
+    params: Params
