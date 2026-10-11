@@ -3,7 +3,11 @@
 Manual checks for the Rhino adapter, which CI can't run. Run the whole list before merging any
 change under `src/molkit/rhino/` or `rhino/`, and add a line for every new command or behaviour.
 
-## One-time setup (until the Yak package exists, M13)
+## One-time setup for running from a checkout
+
+Testing an installed build instead? Follow [packaging.md](packaging.md) step 3, then skip to the
+checklist and type the commands directly.
+
 
 1. Make `molkit` importable in Rhino's Python: create
    `%USERPROFILE%\.rhinocode\py39-rh8\lib\site-packages\molkit-dev.pth` containing one line, the

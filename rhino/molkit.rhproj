@@ -1,0 +1,109 @@
+{
+  "host": {
+    "name": "Rhino3D",
+    "version": "8.35.26251\u002B13001",
+    "os": "windows",
+    "arch": "x64"
+  },
+  "id": "9e5499a0-8263-44b2-82a5-d1bc6735a3f8",
+  "identity": {
+    "name": "molkit",
+    "version": "0.1-beta",
+    "publisher": {
+      "name": "Galina Ignatova"
+    },
+    "copyright": "Copyright \u00A9 2026 Galina Ignatova",
+    "license": "MIT License"
+  },
+  "settings": {
+    "buildPath": "build/",
+    "buildTarget": {
+      "host": {
+        "name": "Rhino3D",
+        "version": "8"
+      },
+      "title": "Rhino3D (8.*)",
+      "slug": "rh8"
+    },
+    "publishTarget": {
+      "title": "McNeel Yak Server"
+    }
+  },
+  "codes": [
+    {
+      "id": "b173692b-4802-407c-ae56-0e04d9fc4983",
+      "language": {
+        "id": "*.*.python",
+        "version": "3.*.*"
+      },
+      "title": "MolkitExportStl",
+      "uri": "commands/MolkitExportStl.py"
+    },
+    {
+      "id": "38f67f55-a7ce-4520-8d59-07c46e8ca996",
+      "language": {
+        "id": "*.*.python",
+        "version": "3.*.*"
+      },
+      "title": "MolkitFetch",
+      "uri": "commands/MolkitFetch.py"
+    },
+    {
+      "id": "a0541cf0-a8a7-4b74-afb7-d4027bce47be",
+      "language": {
+        "id": "*.*.python",
+        "version": "3.*.*"
+      },
+      "title": "MolkitImportCif",
+      "uri": "commands/MolkitImportCif.py"
+    },
+    {
+      "id": "64934452-d91d-4e02-bf49-60a0c99b6192",
+      "language": {
+        "id": "*.*.python",
+        "version": "3.*.*"
+      },
+      "title": "MolkitInfo",
+      "uri": "commands/MolkitInfo.py"
+    },
+    {
+      "id": "3c76ba43-4ff0-4c7e-94b1-f7e8fe60b7d4",
+      "language": {
+        "id": "*.*.python",
+        "version": "3.*.*"
+      },
+      "title": "MolkitPuzzle",
+      "uri": "commands/MolkitPuzzle.py"
+    },
+    {
+      "id": "263eb261-1093-43da-b479-2279db3b53a2",
+      "language": {
+        "id": "*.*.python",
+        "version": "3.*.*"
+      },
+      "title": "MolkitRegenerate",
+      "uri": "commands/MolkitRegenerate.py"
+    },
+    {
+      "id": "39cd15ab-603f-4191-b4bd-0ffdfc27aa73",
+      "language": {
+        "id": "*.*.python",
+        "version": "3.*.*"
+      },
+      "title": "MolkitSettings",
+      "uri": "commands/MolkitSettings.py"
+    }
+  ],
+  "libraries": [
+    {
+      "type": "uri",
+      "library": {
+        "base": "file:///C:/Users/Galina/Documents/Claude Projects/Rhino CIF Plugin/src/molkit/",
+        "language": {
+          "id": "*.*.python",
+          "version": "3.*.*"
+        }
+      }
+    }
+  ]
+}
