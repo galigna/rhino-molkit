@@ -164,7 +164,7 @@ everything with that `model_id` except the anchor, then rebuilds.
 | `MolkitFetch` | Asks for a compound name (option: `Kekulize`), fetches the PubChem 3D SDF, and builds the ball-and-stick model plus its anchor. |
 | `MolkitImportCif` | Picks a `.cif` file, extracts one molecule, and builds the ball-and-stick model plus its anchor. |
 | `MolkitPuzzle` | Picks a model's anchor or any object in the model, then builds the puzzle pieces on `Molkit::<name>::Pieces`. Printability warnings are printed to the command line. |
-| `MolkitSettings` | Picks a model and edits its parameters (apply a preset, clearance, hydrogens, scale, …) with command-line options. Saves to the anchor and regenerates. |
+| `MolkitSettings` | Picks a model and edits its parameters with command-line options generated from the `Params` fields (number options limited to 0.001–1000), plus `FDM`/`Resin` options that apply a preset but keep the hydrogen choice. Enter saves to the anchor and regenerates. |
 | `MolkitRegenerate` | Picks a model and rebuilds all of its geometry from the anchor data. |
 | `MolkitExportStl` | Picks a model and a folder. Writes `<name>_<idx:03>_<El>.stl` for each piece and `<name>_manifest.json`. |
 | `MolkitInfo` | Picks a model and prints the formula, atom and bond counts, source, and parameters. |
@@ -263,7 +263,7 @@ committed.
 | M4 | `params` + presets, and `serialize` round-trip for `PuzzleModel`. | Round-trip equality. Unknown schema version and corrupt data raise. |
 | M5 | `ballstick.build`. | Ball radii and colours; sticks end at the midpoints; the H toggle works. |
 | M6 | **First Rhino slice:** `rhino/draw.py` (layers, unit scaling, ball blocks, sticks), `rhino/storage.py`, `core/info.py` (formula + summary), and the `MolkitFetch` and `MolkitInfo` commands. | Manual smoke checklist in `docs/smoke-test.md`: methane appears with the right layers and colours, and `MolkitInfo` reads the anchor. |
-| M7 | `MolkitSettings` + `MolkitRegenerate`. | Core: parameter-update helpers are tested. Smoke test: change the scale and the model rebuilds. |
+| M7 | `MolkitSettings` + `MolkitRegenerate`. Core: `PRESETS`, `with_preset`, `option_name`. | Core: preset keeps hydrogens; every param gets a distinct valid Rhino option name. Smoke test: change the scale and the model rebuilds. |
 | M8 | Puzzle core: `gender`, `keying`, `profiles`, `pieces`, `validate`. | Gender rule incl. ties; key_ref ⟂ direction and identical on both halves; ethylene → D_FLAT, benzene → DOUBLE_FLAT, acetylene → thick ROUND; validation catches thin walls and overlaps. |
 | M9 | Rhino puzzle geometry + `MolkitPuzzle`. **Test-print** methane first, then ethylene and benzene (FDM), then tune the defaults. | Smoke test: every piece is a closed, valid solid. Print notes are recorded in `docs/print-tests.md`. |
 | M10 | `stl.write` + `manifest`, `rhino/export`, `MolkitExportStl`. | Core: binary STL header, triangle count, and byte layout; manifest content. Smoke test: files open in a slicer. |

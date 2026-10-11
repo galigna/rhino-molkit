@@ -5,8 +5,11 @@ change under `src/molkit/rhino/` or `rhino/`, and add a line for every new comma
 
 ## One-time setup (until the Yak package exists, M13)
 
-1. Rhino 8 → `ScriptEditor` → **Tools → Options → Python 3 → Module Search Paths**: add
-   `<repo>\src`.
+1. Make `molkit` importable in Rhino's Python: create
+   `%USERPROFILE%\.rhinocode\py39-rh8\lib\site-packages\molkit-dev.pth` containing one line, the
+   full path of `<repo>\src`. Rhino reads `.pth` files at startup, so this works for
+   `_-RunPythonScript` too; the Script Editor's module search paths setting did not. Delete the
+   file to undo.
 2. Install the pinned packages once by running any command below. Rhino's pip times out after
    15 s, so if the first install fails on a slow connection, just run it again.
 3. Optional: add aliases in **Rhino Options → Aliases**, for example
@@ -40,3 +43,20 @@ Start each run in a new document with units set to **millimetres**.
 - [ ] `MolkitInfo` → click a non-molkit object: "that object is not part of a molkit model".
 - [ ] Unlock `_data`, delete the anchor point, then `MolkitInfo` on a ball: "the anchor of model
       … is missing".
+
+### MolkitSettings
+- [ ] `MolkitSettings` → click a methane ball: options `FDM`, `Resin` and one per parameter
+      (`Scale`, `BallRadiusFactor`, `StickRadius`, `IncludeHydrogens`, …) show current values.
+- [ ] Set `Scale=30`, press Enter: the model rebuilds 1.5× larger (C ball 12.75 mm); no old
+      geometry is left behind; `MolkitInfo` shows `scale_mm_per_a = 30.0`.
+- [ ] `IncludeHydrogens=No`, Enter: only the C ball remains, with no sticks.
+- [ ] `IncludeHydrogens=No`, then click `Resin`: values switch to the resin preset (scale 12)
+      but `IncludeHydrogens` stays `No`.
+- [ ] Typing `0` for `Clearance` is rejected by Rhino (minimum 0.001).
+- [ ] Esc during the prompt: nothing changes.
+- [ ] Lock or hide the `BallStick::C` layer, then change a setting: the old C ball is still
+      replaced (no duplicates).
+
+### MolkitRegenerate
+- [ ] Delete one H ball by hand, then `MolkitRegenerate` → click any part: all five balls are back.
+- [ ] Save, close and reopen the file; `MolkitRegenerate` still works (data lives on the anchor).

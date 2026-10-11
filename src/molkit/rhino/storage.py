@@ -42,10 +42,30 @@ def model_of(doc: Rhino.RhinoDoc, obj: Rhino.DocObjects.RhinoObject) -> PuzzleMo
     model_id = obj.Attributes.GetUserString(MODEL_ID)
     if not model_id:
         return None
+    return loads(_anchor(doc, model_id).Attributes.GetUserString(MODEL_JSON))
+
+
+def update_anchor(doc: Rhino.RhinoDoc, model: PuzzleModel) -> None:
+    """Store a changed model (e.g. new params) on its existing anchor."""
+    anchor = _anchor(doc, model.model_id)
+    attrs = anchor.Attributes.Duplicate()
+    attrs.SetUserString(MODEL_JSON, dumps(model))
+    doc.Objects.ModifyAttributes(anchor, attrs, True)
+
+
+def delete_generated(doc: Rhino.RhinoDoc, model_id: str) -> None:
+    """Delete every object of the model except its anchor, even if locked or hidden."""
+    for obj in list(_all_objects(doc)):
+        attrs = obj.Attributes
+        if attrs.GetUserString(MODEL_ID) == model_id and attrs.GetUserString(ROLE) != "anchor":
+            doc.Objects.Delete(obj, True, True)
+
+
+def _anchor(doc: Rhino.RhinoDoc, model_id: str) -> Rhino.DocObjects.RhinoObject:
     for candidate in _all_objects(doc):
         attrs = candidate.Attributes
         if attrs.GetUserString(MODEL_ID) == model_id and attrs.GetUserString(ROLE) == "anchor":
-            return loads(attrs.GetUserString(MODEL_JSON))
+            return candidate
     raise ModelDataError(f"the anchor of model {model_id} is missing, so it can't be read")
 
 

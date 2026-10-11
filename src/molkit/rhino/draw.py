@@ -16,17 +16,32 @@ from molkit.rhino import storage
 _DATA_LAYER_COLOR = (128, 128, 128)
 
 
-def add_ballstick(doc: Rhino.RhinoDoc, model: PuzzleModel) -> None:
-    """Draw a model's balls and sticks, plus the anchor that stores the model."""
+def add_model(doc: Rhino.RhinoDoc, model: PuzzleModel) -> None:
+    """Draw a new model and add the anchor that stores it."""
+    _add_ballstick(doc, model)
+    data_layer = _layer(doc, f"{_root(model)}::_data", _DATA_LAYER_COLOR, locked=True)
+    storage.add_anchor(doc, model, data_layer)
+
+
+def redraw(doc: Rhino.RhinoDoc, model: PuzzleModel) -> None:
+    """Replace an existing model's geometry and save `model` (e.g. new params) on its anchor."""
+    storage.delete_generated(doc, model.model_id)
+    _add_ballstick(doc, model)
+    storage.update_anchor(doc, model)
+
+
+def _add_ballstick(doc: Rhino.RhinoDoc, model: PuzzleModel) -> None:
     mm = Rhino.RhinoMath.UnitScale(Rhino.UnitSystem.Millimeters, doc.ModelUnitSystem)
-    root = f"Molkit::{model.molecule.name}"
+    parent = f"{_root(model)}::BallStick"
     spec = build(model.molecule, model.params)
     for ball in spec.balls:
-        _add_ball(doc, model.model_id, f"{root}::BallStick", ball, mm)
+        _add_ball(doc, model.model_id, parent, ball, mm)
     for stick in spec.sticks:
-        _add_stick(doc, model.model_id, f"{root}::BallStick", stick, mm)
-    data_layer = _layer(doc, f"{root}::_data", _DATA_LAYER_COLOR, locked=True)
-    storage.add_anchor(doc, model, data_layer)
+        _add_stick(doc, model.model_id, parent, stick, mm)
+
+
+def _root(model: PuzzleModel) -> str:
+    return f"Molkit::{model.molecule.name}"
 
 
 def _add_ball(doc: Rhino.RhinoDoc, model_id: str, parent: str, ball: BallSpec, mm: float) -> None:

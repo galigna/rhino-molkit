@@ -1,8 +1,11 @@
 from __future__ import annotations
 
+import dataclasses
+import re
+
 import pytest
 
-from molkit.core.params import FDM, RESIN, Params
+from molkit.core.params import FDM, PRESETS, RESIN, Params, option_name, with_preset
 
 
 def test_fdm_preset_matches_spec_table() -> None:
@@ -32,3 +35,32 @@ def test_resin_is_smaller_and_tighter_than_fdm() -> None:
 def test_presets_leave_minimum_wall_around_thickest_peg(preset: Params) -> None:
     hole_radius = preset.triple_peg_radius_mm + preset.clearance_mm
     assert preset.stick_radius_mm - hole_radius >= preset.min_wall_mm
+
+
+def test_presets_are_listed_by_display_name() -> None:
+    assert PRESETS == {"FDM": FDM, "Resin": RESIN}
+
+
+def test_applying_a_preset_takes_printer_values_but_keeps_hydrogen_choice() -> None:
+    mine = dataclasses.replace(FDM, include_hydrogens=False, clearance_mm=0.3)
+    assert with_preset(mine, RESIN) == dataclasses.replace(RESIN, include_hydrogens=False)
+
+
+@pytest.mark.parametrize(
+    ("field", "expected"),
+    [
+        ("clearance_mm", "Clearance"),
+        ("scale_mm_per_a", "Scale"),
+        ("triple_peg_radius_mm", "TriplePegRadius"),
+        ("include_hydrogens", "IncludeHydrogens"),
+        ("ball_radius_factor", "BallRadiusFactor"),
+    ],
+)
+def test_option_name_is_camel_case_without_mm_suffix(field: str, expected: str) -> None:
+    assert option_name(field) == expected
+
+
+def test_every_param_gets_a_distinct_valid_rhino_option_name() -> None:
+    names = [option_name(f.name) for f in dataclasses.fields(Params)]
+    assert len(set(names)) == len(names)
+    assert all(re.fullmatch(r"[A-Z][A-Za-z0-9]*", n) for n in names)  # Rhino's option-name rule

@@ -2,16 +2,17 @@
 
 from __future__ import annotations
 
+import dataclasses
 import uuid
 
 import Rhino
 from Rhino.Input import GetResult
-from Rhino.Input.Custom import GetString, OptionToggle
+from Rhino.Input.Custom import GetOption, GetString, OptionDouble, OptionToggle
 
 from molkit.core.errors import MolkitError
 from molkit.core.info import describe
 from molkit.core.model import PuzzleModel, SourceInfo
-from molkit.core.params import FDM
+from molkit.core.params import FDM, PRESETS, Params, option_name, with_preset
 from molkit.core.sources.pubchem import fetch_sdf
 from molkit.core.sources.sdf import parse_sdf
 from molkit.rhino import draw, storage
@@ -29,7 +30,7 @@ def fetch() -> None:
         print(f"Molkit: {error}")
         return
     doc = Rhino.RhinoDoc.ActiveDoc
-    draw.add_ballstick(doc, PuzzleModel(str(uuid.uuid4()), molecule, FDM))
+    draw.add_model(doc, PuzzleModel(str(uuid.uuid4()), molecule, FDM))
     doc.Views.Redraw()
     print(f"Molkit: built {name} ({len(molecule.atoms)} atoms, {len(molecule.bonds)} bonds)")
 
@@ -39,6 +40,63 @@ def info() -> None:
     model = _pick_model("Select any part of a molkit model")
     if model is not None:
         print(describe(model))
+
+
+def regenerate() -> None:
+    """MolkitRegenerate: rebuild a model's geometry from the data on its anchor."""
+    model = _pick_model("Select any part of the molkit model to regenerate")
+    if model is not None:
+        _redraw(model)
+
+
+def settings() -> None:
+    """MolkitSettings: edit a model's parameters, save them on the anchor and regenerate."""
+    model = _pick_model("Select any part of the molkit model to edit")
+    if model is None:
+        return
+    params = _ask_params(model.params)
+    if params is not None:
+        _redraw(dataclasses.replace(model, params=params))
+
+
+def _redraw(model: PuzzleModel) -> None:
+    doc = Rhino.RhinoDoc.ActiveDoc
+    draw.redraw(doc, model)
+    doc.Views.Redraw()
+    print(f"Molkit: regenerated {model.molecule.name}")
+
+
+def _ask_params(params: Params) -> Params | None:
+    """Command-line options for every Params field, plus one per preset; Enter applies."""
+    get = GetOption()
+    get.SetCommandPrompt("Molkit settings (Enter to apply)")
+    get.AcceptNothing(True)
+    while True:
+        get.ClearCommandOptions()
+        presets = {get.AddOption(name): preset for name, preset in PRESETS.items()}
+        options = {
+            f.name: _add_option(get, f.name, getattr(params, f.name))
+            for f in dataclasses.fields(Params)
+        }
+        result = get.Get()
+        params = Params(**{name: option.CurrentValue for name, option in options.items()})
+        if result == GetResult.Nothing:
+            return params
+        if result != GetResult.Option:
+            return None
+        if get.OptionIndex() in presets:
+            params = with_preset(params, presets[get.OptionIndex()])
+
+
+def _add_option(get: GetOption, field: str, value: float) -> OptionToggle | OptionDouble:
+    name = option_name(field)
+    if isinstance(value, bool):
+        toggle = OptionToggle(value, "No", "Yes")
+        get.AddOptionToggle(name, toggle)
+        return toggle
+    number = OptionDouble(value, 0.001, 1000.0)  # Rhino rejects values outside the limits
+    get.AddOptionDouble(name, number)
+    return number
 
 
 def _ask_compound() -> tuple[str, bool] | None:
