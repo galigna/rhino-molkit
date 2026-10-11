@@ -283,5 +283,7 @@ committed.
 ## 12. Open items
 
 - License: assumed **MIT** unless changed.
-- Install of the pinned `rdkit`/`gemmi` inside Rhino 8 still needs to be confirmed on a real Rhino
-  (verified so far on standalone CPython 3.9).
+- Confirmed 2026-10-11: the pinned `rdkit`/`gemmi` install and run inside Rhino 8.35 (CPython
+  3.9.10, Windows) via `# r:` requirements. Rhino's pip uses a 15 s timeout, so the first install
+  (~40 MB with numpy) can time out on a slow connection. Re-running works, and the README must
+  say so. macOS is still unverified.
