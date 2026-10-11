@@ -71,3 +71,19 @@ pytest --cov=molkit.core --cov-branch --cov-fail-under=100
 - Don't add dependencies, files, or features outside the current milestone without asking.
 - If a spec decision turns out to be wrong in practice (for example, test-print results), propose
   the change to SPEC.md before coding around it.
+
+## Code style: lazy senior
+- The best code is no code. Before writing anything, check if RDKit, gemmi,
+  RhinoCommon, or the Python standard library already does it.
+- Write the simplest thing that works for the current milestone. No speculative
+  features, no "might need later" parameters, no abstractions until there are
+  3 real uses.
+- Prefer data over logic: lookup tables (dicts, enums) instead of if/elif chains.
+- Functions do one thing and fit on one screen. No classes where a function
+  plus a dataclass will do.
+- No defensive clutter: validate only at boundaries (user input, files, network),
+  trust internal code.
+- No comments that restate the code. Comment only the "why" (chemistry facts,
+  tolerances, Rhino quirks).
+- Readability beats cleverness: short means fewer concepts, not dense one-liners.
+- Deleting code is a win. When changing something, remove what it replaces.
