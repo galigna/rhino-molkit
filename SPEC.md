@@ -126,7 +126,6 @@ Atom(element: str, position: Vec3)                  # element: canonical symbol,
 Bond(a: int, b: int, order: BondOrder)              # indices into Molecule.atoms, either order
 SourceInfo(kind: Literal["pubchem", "cif"], identifier: str)
 Molecule(name: str, atoms: tuple[Atom, ...], bonds: tuple[Bond, ...], source: SourceInfo)
-    .without_hydrogens() -> Molecule                # reindexes atoms and bonds
     .neighbors(i) -> tuple[int, ...]
 
 Params(scale_mm_per_a, ball_radius_factor, stick_radius_mm, include_hydrogens, peg_radius_mm,
@@ -136,6 +135,8 @@ Params(scale_mm_per_a, ball_radius_factor, stick_radius_mm, include_hydrogens, p
 BallSpec(atom_index, center: Vec3, radius, color_rgb, element)
 StickSpec(atom_index, bond_index, start: Vec3, end: Vec3, radius, color_rgb)   # half-bond
 BallStickSpec(balls: tuple[BallSpec, ...], sticks: tuple[StickSpec, ...])
+# Hiding hydrogens skips them; atom_index/bond_index always point into the stored Molecule,
+# so Rhino user strings stay valid whatever the parameters.
 
 class Gender(Enum): PEG, HOLE
 class ProfileKind(Enum): ROUND, D_FLAT, DOUBLE_FLAT
@@ -258,7 +259,7 @@ committed.
 | # | Slice | Tests / proof |
 |---|---|---|
 | M0 | Scaffold: `pyproject.toml`, ruff, mypy, pytest + coverage, CI on Py 3.9, empty packages, `test_architecture.py`. **Check that `rdkit` and `gemmi` install in Rhino 8 CPython, and pin the versions.** | CI green. Architecture test fails on a planted `import Rhino`. |
-| M1 | `vec`, `elements`, `model` (validation, `without_hydrogens`, `neighbors`), `errors`. | Unit tests for vector math, invariants, H removal and reindexing. |
+| M1 | `vec`, `elements`, `model` (`neighbors`), `errors`. | Unit tests for vector math, element data sanity, neighbours. |
 | M2 | `sdf.parse` (RDKit, keeps Hs, aromatic/kekule modes) using fixture SDFs. | Methane has 5 atoms and 4 single bonds, with H–C–H angles of 109.5° ± 1°. Benzene aromatic gives 6 aromatic C–C bonds, kekule gives 3+3. |
 | M3 | `pubchem.fetch_sdf` with an injected HTTP function and error mapping. | Fake transport for 200 / 404 / no-3D / timeout. No real network in tests. |
 | M4 | `params` + presets, and `serialize` round-trip for `PuzzleModel`. | Round-trip equality. Unknown schema version and corrupt data raise. |
