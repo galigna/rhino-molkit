@@ -13,10 +13,12 @@ from molkit.core.errors import (
     NetworkError,
     No3DConformerError,
 )
+from molkit.core.model import Molecule, SourceInfo
+from molkit.core.sources.sdf import parse_sdf
 
 Fetch = Callable[[str], bytes]
 
-_URL = "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/{}/SDF?record_type=3d"
+_URL = "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/{}/SDF"
 _TIMEOUT_S = 30
 
 
@@ -28,10 +30,22 @@ def http_get(url: str) -> bytes:
     return body
 
 
-def fetch_sdf(name: str, fetch: Fetch = http_get) -> str:
-    """Download the 3D conformer SDF for a compound name."""
+def fetch_molecule(name: str, kekulize: bool = False, fetch: Fetch = http_get) -> Molecule:
+    """PubChem's 3D record or, for compounds it has none for, its 2D record with RDKit-generated
+    coordinates (flagged on the source)."""
     try:
-        return fetch(_URL.format(quote(name.strip(), safe=""))).decode()
+        return parse_sdf(fetch_sdf(name, fetch), SourceInfo("pubchem", name), kekulize)
+    except No3DConformerError:
+        flat = fetch_sdf(name, fetch, three_d=False)
+        source = SourceInfo("pubchem", name, generated_3d=True)
+        return parse_sdf(flat, source, kekulize, generate_3d=True)
+
+
+def fetch_sdf(name: str, fetch: Fetch = http_get, three_d: bool = True) -> str:
+    """Download the SDF for a compound name: the 3D conformer, or the 2D record."""
+    url = _URL.format(quote(name.strip(), safe="")) + ("?record_type=3d" if three_d else "")
+    try:
+        return fetch(url).decode()
     except HTTPError as error:
         raise _from_http_error(name, error) from None
     except OSError as error:  # URLError, socket.timeout, connection resets
@@ -44,4 +58,5 @@ def _from_http_error(name: str, error: HTTPError) -> MolkitError:
     # PubChem uses 404 for both cases; only the message tells them apart.
     if b"No CID found" in error.read():
         return CompoundNotFoundError(f"PubChem has no compound named {name!r}")
+    # PubChem only computes conformers for small, fairly rigid molecules (<= 50 heavy atoms).
     return No3DConformerError(f"PubChem has no 3D structure for {name!r}")

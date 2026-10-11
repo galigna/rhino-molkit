@@ -10,7 +10,7 @@ pegs whose shape encodes the bond order.
 
 | Command | Does |
 |---|---|
-| `MolkitFetch` | Fetches a compound from PubChem by name and builds a ball-and-stick model. Option `Kekulize` shows aromatic rings as alternating single/double bonds. |
+| `MolkitFetch` | Fetches a compound from PubChem by name and builds a ball-and-stick model. PubChem only has 3D structures for molecules up to 50 heavy atoms; for larger ones RDKit generates the coordinates. Option `Kekulize` shows aromatic rings as alternating single/double bonds. |
 | `MolkitInfo` | Click any part of a model to print its formula, bonds, source and parameters. |
 | `MolkitSettings` | Edit a model's parameters (scale, hydrogens, peg sizes, clearance, …) or apply the FDM/Resin preset, then rebuild it. |
 | `MolkitPuzzle` | Split a model into printable pieces, one per atom: pegs shaped by bond order, holes with clearance. Problems (thin walls, overlapping balls, …) are listed instead of building broken pieces. |

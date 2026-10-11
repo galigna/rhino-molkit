@@ -14,11 +14,10 @@ from Rhino.Input.Custom import GetOption, GetString, OptionDouble, OptionToggle
 from molkit.core.errors import MolkitError
 from molkit.core.info import describe
 from molkit.core.manifest import safe_name
-from molkit.core.model import PuzzleModel, SourceInfo
+from molkit.core.model import PuzzleModel
 from molkit.core.params import FDM, PRESETS, Params, option_name, with_preset
 from molkit.core.puzzle import build_pieces, check
-from molkit.core.sources.pubchem import fetch_sdf
-from molkit.core.sources.sdf import parse_sdf
+from molkit.core.sources.pubchem import fetch_molecule
 from molkit.rhino import draw, export, storage
 
 
@@ -29,7 +28,7 @@ def fetch() -> None:
         return
     name, kekulize = asked
     try:
-        molecule = parse_sdf(fetch_sdf(name), SourceInfo("pubchem", name), kekulize)
+        molecule = fetch_molecule(name, kekulize)
     except MolkitError as error:
         print(f"Molkit: {error}")
         return
@@ -37,6 +36,8 @@ def fetch() -> None:
     draw.add_model(doc, PuzzleModel(str(uuid.uuid4()), molecule, FDM))
     doc.Views.Redraw()
     print(f"Molkit: built {name} ({len(molecule.atoms)} atoms, {len(molecule.bonds)} bonds)")
+    if molecule.source.generated_3d:
+        print("Molkit: PubChem has no 3D structure for it; RDKit generated the coordinates")
 
 
 def info() -> None:
