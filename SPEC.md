@@ -71,6 +71,7 @@ repo/
 │  └─ rhino/                 # thin adapter: specs -> Rhino geometry
 │     ├─ draw.py             # layers, unit scaling, ball blocks, specs -> Breps
 │     ├─ storage.py          # user-text tags + anchor object I/O
+│     ├─ pieces.py           # PieceSpec -> closed Brep (loft sections, booleans)
 │     ├─ export.py           # Mesh -> triangles -> core.stl (M10)
 │     └─ commands.py         # command bodies (get input, call core, draw)
 ├─ rhino/

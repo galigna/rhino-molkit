@@ -10,8 +10,8 @@ from System.Drawing import Color
 
 from molkit.core.ballstick import BallSpec, StickSpec, build
 from molkit.core.model import PuzzleModel
-from molkit.core.vec import Vec3
-from molkit.rhino import storage
+from molkit.core.puzzle import PieceSpec
+from molkit.rhino import pieces, storage
 
 _DATA_LAYER_COLOR = (128, 128, 128)
 
@@ -23,21 +23,44 @@ def add_model(doc: Rhino.RhinoDoc, model: PuzzleModel) -> None:
     storage.add_anchor(doc, model, data_layer)
 
 
-def redraw(doc: Rhino.RhinoDoc, model: PuzzleModel) -> None:
-    """Replace an existing model's geometry and save `model` (e.g. new params) on its anchor."""
-    storage.delete_generated(doc, model.model_id)
+def redraw(doc: Rhino.RhinoDoc, model: PuzzleModel) -> bool:
+    """Replace a model's ball-and-stick geometry and save `model` on its anchor. Removes any
+    pieces too; returns True if there were some, so the caller can rebuild them."""
+    deleted = storage.delete_generated(doc, model.model_id)
     _add_ballstick(doc, model)
     storage.update_anchor(doc, model)
+    return "piece" in deleted
+
+
+def replace_pieces(
+    doc: Rhino.RhinoDoc, model: PuzzleModel, specs: tuple[PieceSpec, ...]
+) -> list[int]:
+    """Swap the model's pieces for new ones. Returns atoms whose solids Rhino couldn't build."""
+    storage.delete_generated(doc, model.model_id, roles={"piece"})
+    mm = _mm(doc)
+    failed = []
+    for spec in specs:
+        brep = pieces.piece_brep(spec, mm, doc.ModelAbsoluteTolerance)
+        if brep is None:
+            failed.append(spec.atom_index)
+            continue
+        layer = _layer(doc, f"{_root(model)}::Pieces::{spec.element}", spec.color_rgb)
+        doc.Objects.AddBrep(brep, storage.tagged(layer, model.model_id, "piece", spec.atom_index))
+    return failed
 
 
 def _add_ballstick(doc: Rhino.RhinoDoc, model: PuzzleModel) -> None:
-    mm = Rhino.RhinoMath.UnitScale(Rhino.UnitSystem.Millimeters, doc.ModelUnitSystem)
+    mm = _mm(doc)
     parent = f"{_root(model)}::BallStick"
     spec = build(model.molecule, model.params)
     for ball in spec.balls:
         _add_ball(doc, model.model_id, parent, ball, mm)
     for stick in spec.sticks:
         _add_stick(doc, model.model_id, parent, stick, mm)
+
+
+def _mm(doc: Rhino.RhinoDoc) -> float:
+    return float(Rhino.RhinoMath.UnitScale(Rhino.UnitSystem.Millimeters, doc.ModelUnitSystem))
 
 
 def _root(model: PuzzleModel) -> str:
@@ -48,7 +71,7 @@ def _add_ball(doc: Rhino.RhinoDoc, model_id: str, parent: str, ball: BallSpec, m
     layer = _layer(doc, f"{parent}::{ball.element}", ball.color_rgb)
     attrs = storage.tagged(layer, model_id, "ball", ball.atom_index)
     block = _ball_block(doc, ball.element, ball.radius * mm)
-    move = Transform.Translation(Vector3d(_point(ball.center, mm)))
+    move = Transform.Translation(Vector3d(pieces.point(ball.center, mm)))
     doc.Objects.AddInstanceObject(block, move, attrs)
 
 
@@ -73,7 +96,7 @@ def _ball_block(doc: Rhino.RhinoDoc, element: str, radius: float) -> int:
 
 
 def _cylinder(stick: StickSpec, mm: float) -> Brep:
-    start, end = _point(stick.start, mm), _point(stick.end, mm)
+    start, end = pieces.point(stick.start, mm), pieces.point(stick.end, mm)
     axis = end - start
     return Cylinder(Circle(Plane(start, axis), stick.radius * mm), axis.Length).ToBrep(True, True)
 
@@ -98,7 +121,3 @@ def _layer(
             index = doc.Layers.Add(layer)
         parent_id = doc.Layers[index].Id
     return index
-
-
-def _point(v: Vec3, mm: float) -> Point3d:
-    return Point3d(v.x * mm, v.y * mm, v.z * mm)

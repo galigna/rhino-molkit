@@ -60,3 +60,19 @@ Start each run in a new document with units set to **millimetres**.
 ### MolkitRegenerate
 - [ ] Delete one H ball by hand, then `MolkitRegenerate` → click any part: all five balls are back.
 - [ ] Save, close and reopen the file; `MolkitRegenerate` still works (data lives on the anchor).
+
+### MolkitPuzzle
+- [ ] `MolkitFetch methane`, then `MolkitPuzzle` → click it: prints `built 5 of 5 pieces`; layers
+      `Molkit::methane::Pieces::C` and `…::H`. Turn off `…::BallStick` to see them clearly.
+- [ ] The C piece has four round holes; each H piece has a round peg with a chamfered tip.
+- [ ] Each piece is one closed solid: `What` says "closed solid polysurface".
+- [ ] Pegs sit inside the matching holes with a visible gap (0.2 mm): use `Section` or
+      `ClippingPlane` through a C–H bond.
+- [ ] `ethylene`: the C=C joint is a D-shaped peg and hole whose flats line up (both face
+      perpendicular to the molecule's plane).
+- [ ] `benzene`: ring joints have two flats; C–H joints are round.
+- [ ] `acetylene`: the C≡C peg is visibly thicker than the C–H pegs.
+- [ ] `MolkitSettings` → `StickRadius=2.5` → Enter: prints a "wall … < 1.0" issue for each C
+      hole and "no pieces built"; the old pieces are removed.
+- [ ] `MolkitSettings` back to `StickRadius=3.5`: the pieces are rebuilt automatically.
+- [ ] `IncludeHydrogens=No` with pieces present: methane becomes a single plain C ball piece.

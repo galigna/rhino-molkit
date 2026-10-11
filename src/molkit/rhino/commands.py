@@ -13,6 +13,7 @@ from molkit.core.errors import MolkitError
 from molkit.core.info import describe
 from molkit.core.model import PuzzleModel, SourceInfo
 from molkit.core.params import FDM, PRESETS, Params, option_name, with_preset
+from molkit.core.puzzle import build_pieces, check
 from molkit.core.sources.pubchem import fetch_sdf
 from molkit.core.sources.sdf import parse_sdf
 from molkit.rhino import draw, storage
@@ -59,11 +60,36 @@ def settings() -> None:
         _redraw(dataclasses.replace(model, params=params))
 
 
+def puzzle() -> None:
+    """MolkitPuzzle: split a model into printable pieces, one per atom."""
+    model = _pick_model("Select any part of the molkit model to split into pieces")
+    if model is not None:
+        _build_pieces(model)
+
+
 def _redraw(model: PuzzleModel) -> None:
     doc = Rhino.RhinoDoc.ActiveDoc
-    draw.redraw(doc, model)
+    had_pieces = draw.redraw(doc, model)
     doc.Views.Redraw()
     print(f"Molkit: regenerated {model.molecule.name}")
+    if had_pieces:
+        _build_pieces(model)
+
+
+def _build_pieces(model: PuzzleModel) -> None:
+    specs = build_pieces(model.molecule, model.params)
+    issues = check(specs, model.params)
+    for issue in issues:
+        print(f"Molkit: {issue.message}")
+    if issues:
+        print("Molkit: no pieces built; adjust the parameters with MolkitSettings")
+        return
+    doc = Rhino.RhinoDoc.ActiveDoc
+    failed = draw.replace_pieces(doc, model, specs)
+    doc.Views.Redraw()
+    print(f"Molkit: built {len(specs) - len(failed)} of {len(specs)} pieces")
+    if failed:
+        print(f"Molkit: Rhino's booleans failed for atoms {failed}")
 
 
 def _ask_params(params: Params) -> Params | None:

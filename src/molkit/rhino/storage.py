@@ -12,7 +12,7 @@ from molkit.core.model import PuzzleModel
 from molkit.core.serialize import dumps, loads
 
 MODEL_ID = "molkit.model_id"
-ROLE = "molkit.role"  # anchor | ball | stick
+ROLE = "molkit.role"  # anchor | ball | stick | piece
 ATOM_INDEX = "molkit.atom_index"
 MODEL_JSON = "molkit.model"
 
@@ -53,12 +53,19 @@ def update_anchor(doc: Rhino.RhinoDoc, model: PuzzleModel) -> None:
     doc.Objects.ModifyAttributes(anchor, attrs, True)
 
 
-def delete_generated(doc: Rhino.RhinoDoc, model_id: str) -> None:
-    """Delete every object of the model except its anchor, even if locked or hidden."""
+def delete_generated(doc: Rhino.RhinoDoc, model_id: str, roles: set[str] | None = None) -> set[str]:
+    """Delete the model's objects (all but the anchor, or only `roles`), even if locked or
+    hidden. Returns the roles that were present."""
+    deleted = set()
     for obj in list(_all_objects(doc)):
         attrs = obj.Attributes
-        if attrs.GetUserString(MODEL_ID) == model_id and attrs.GetUserString(ROLE) != "anchor":
+        role = attrs.GetUserString(ROLE)
+        if attrs.GetUserString(MODEL_ID) != model_id or role == "anchor":
+            continue
+        if roles is None or role in roles:
             doc.Objects.Delete(obj, True, True)
+            deleted.add(role)
+    return deleted
 
 
 def _anchor(doc: Rhino.RhinoDoc, model_id: str) -> Rhino.DocObjects.RhinoObject:
