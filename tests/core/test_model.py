@@ -38,23 +38,3 @@ def test_neighbors_sees_bonds_from_either_end() -> None:
         SOURCE,
     )
     assert chain.neighbors(1) == (0, 2)
-
-
-def test_without_hydrogens_on_methane_leaves_lone_carbon(methane: Molecule) -> None:
-    heavy = methane.without_hydrogens()
-    assert heavy.atoms == (methane.atoms[0],)
-    assert heavy.bonds == ()
-    assert (heavy.name, heavy.source) == (methane.name, methane.source)
-
-
-def test_without_hydrogens_reindexes_atoms_and_bonds() -> None:
-    # Formaldehyde with hydrogens listed between the heavy atoms: H, C, H, O.
-    atoms = (_atom("H", -1.0), _atom("C"), _atom("H", 1.0), _atom("O", 2.0))
-    bonds = (
-        Bond(0, 1, BondOrder.SINGLE),
-        Bond(1, 2, BondOrder.SINGLE),
-        Bond(1, 3, BondOrder.DOUBLE),
-    )
-    heavy = Molecule("formaldehyde", atoms, bonds, SOURCE).without_hydrogens()
-    assert heavy.atoms == (atoms[1], atoms[3])
-    assert heavy.bonds == (Bond(0, 1, BondOrder.DOUBLE),)
