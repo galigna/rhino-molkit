@@ -28,7 +28,7 @@ update it when a decision changes.
   `mypy --strict` (`ignore_missing_imports` only for rdkit/gemmi).
 - **Frozen dataclasses** for all data: `@dataclass(frozen=True)`, with `tuple` instead of `list`
   and no mutable defaults. Use `dataclasses.replace` to make modified copies.
-- **Short functions**: aim for ≤ 20 lines and one job each. Extract helpers early.
+- **Short functions**: aim for ≤ 20 lines and one job each.
 - **No duplication**: element data, presets, and constants are defined once. Search before
   writing a helper.
 - Pure functions in core: no global state, no I/O except in `sources/` and `stl.py`'s byte output,
