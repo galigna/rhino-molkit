@@ -223,7 +223,6 @@ the element's CPK colour.
 | `chamfer_mm` (peg lead-in) | 0.3 | 0.2 |
 | `min_wall_mm` | 1.0 | 0.6 |
 | `include_hydrogens` | true | true |
-| STL mesh: max deviation | 0.05 mm | 0.02 mm |
 
 Sanity check with FDM settings on a C–H bond: 21.8 mm between centres, C ball 8.5 mm, H ball 6.0 mm.
 The joint is 2.4 mm outside the C ball. The hole goes 5.4 mm deep, ending 5.5 mm from C's centre,
@@ -267,7 +266,8 @@ committed.
 | M7 | `MolkitSettings` + `MolkitRegenerate`. Core: `PRESETS`, `with_preset`, `option_name`. | Core: preset keeps hydrogens; every param gets a distinct valid Rhino option name. Smoke test: change the scale and the model rebuilds. |
 | M8 | Puzzle core: `puzzle.py` (`build_pieces`, `check`), sharing `visible_atoms` and `ball_radius` with `ballstick.py`. | Gender rule incl. ties; key_ref ⟂ direction and identical on both halves; ethylene → D_FLAT, benzene → DOUBLE_FLAT, acetylene → thick ROUND; validation catches thin walls and overlaps. |
 | M9 | Rhino puzzle geometry + `MolkitPuzzle`. **Test-print** methane first, then ethylene and benzene (FDM), then tune the defaults. | Smoke test: every piece is a closed, valid solid. Print notes are recorded in `docs/print-tests.md`. |
-| M10 | `stl.write` + `manifest`, `rhino/export`, `MolkitExportStl`. | Core: binary STL header, triangle count, and byte layout; manifest content. Smoke test: files open in a slicer. |
+| M10 | `stl.binary_stl` + `manifest` (file names, assembly JSON), `rhino/export`, `MolkitExportStl`. STL meshes use a fixed 0.02 mm max deviation for every preset (a per-preset parameter would invalidate stored models). | Core: binary STL header, triangle count, and byte layout; manifest content. Smoke test: files open in a slicer. |
+| M10b | 3D fallback: when PubChem has no 3D record (e.g. > 50 heavy atoms, like α-cyclodextrin), fetch the 2D SDF and generate coordinates with RDKit (add H, ETKDGv3 with macrocycle torsions, MMFF cleanup). The source records that coordinates were computed, and `MolkitInfo` shows it; error messages explain PubChem's limits. | Core: fake transport serving 2D → 3D molecule with sensible bond lengths; generation failure raises. Smoke test: α-cyclodextrin builds as ball-and-stick. |
 | M11 | `cif.parse`: gemmi read, symmetry expansion, disorder (highest occupancy / altloc A), RDKit connectivity + bond orders, one-molecule extraction. | Fixtures: a small organic CIF (e.g. urea, aspirin) has the expected formula and bond count. A molecule split across cell edges comes out whole. Malformed CIF raises. |
 | M12 | `MolkitImportCif`. | Smoke test with the fixture CIFs. |
 | M13 | Packaging: `.rhproj`, Yak build, install on a clean Rhino 8; README with screenshots, a GIF, a printed photo, and an architecture diagram; tag `v0.1.0`. | Fresh install runs every command. |
@@ -276,7 +276,6 @@ committed.
 
 - Ring-closure joints: detect one closure bond per ring and give it a short, chamfered, extra-clearance
   snap peg.
-- RDKit ETKDG embedding when PubChem has no 3D record.
 - Engraved atom labels and flat print bases.
 - Magnet pockets as an alternative joint style.
 - Cluster or unit-cell cutting for extended structures.

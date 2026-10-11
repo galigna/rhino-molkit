@@ -3,8 +3,8 @@
 A Rhino 8 plugin that turns molecules into 3D-printable puzzles: one piece per atom, joined by
 pegs whose shape encodes the bond order.
 
-> **Status: early development.** Ball-and-stick models and puzzle pieces from PubChem work; STL
-> export and CIF import are coming. See [SPEC.md](SPEC.md) for the plan.
+> **Status: early development.** PubChem models, puzzle pieces and STL export work; CIF import is
+> coming. Peg and clearance sizes haven't been test-printed yet. See [SPEC.md](SPEC.md) for the plan.
 
 ## What works now
 
@@ -14,6 +14,7 @@ pegs whose shape encodes the bond order.
 | `MolkitInfo` | Click any part of a model to print its formula, bonds, source and parameters. |
 | `MolkitSettings` | Edit a model's parameters (scale, hydrogens, peg sizes, clearance, …) or apply the FDM/Resin preset, then rebuild it. |
 | `MolkitPuzzle` | Split a model into printable pieces, one per atom: pegs shaped by bond order, holes with clearance. Problems (thin walls, overlapping balls, …) are listed instead of building broken pieces. |
+| `MolkitExportStl` | Write one STL per piece (in mm) plus a `<name>_manifest.json` that says which piece joins which. |
 | `MolkitRegenerate` | Rebuild a model from its stored data, e.g. after deleting parts by hand. |
 
 Models are rebuilt from data stored on the model (a locked anchor point), not edited by hand.

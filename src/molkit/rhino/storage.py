@@ -68,6 +68,16 @@ def delete_generated(doc: Rhino.RhinoDoc, model_id: str, roles: set[str] | None 
     return deleted
 
 
+def piece_breps(doc: Rhino.RhinoDoc, model_id: str) -> dict[int, Rhino.Geometry.Brep]:
+    """The model's piece solids, by atom index."""
+    return {
+        int(obj.Attributes.GetUserString(ATOM_INDEX)): obj.Geometry
+        for obj in _all_objects(doc)
+        if obj.Attributes.GetUserString(MODEL_ID) == model_id
+        and obj.Attributes.GetUserString(ROLE) == "piece"
+    }
+
+
 def _anchor(doc: Rhino.RhinoDoc, model_id: str) -> Rhino.DocObjects.RhinoObject:
     for candidate in _all_objects(doc):
         attrs = candidate.Attributes
