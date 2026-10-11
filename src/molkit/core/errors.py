@@ -9,3 +9,11 @@ class MolkitError(Exception):
 
 class UnknownElementError(MolkitError):
     """An element symbol is not in the element table."""
+
+
+class SdfParseError(MolkitError):
+    """An SDF/MOL record is unreadable or uses a bond type we cannot model."""
+
+
+class No3DConformerError(MolkitError):
+    """A structure has only 2D coordinates."""
