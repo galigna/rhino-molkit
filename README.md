@@ -12,6 +12,8 @@ pegs whose shape encodes the bond order.
 |---|---|
 | `MolkitFetch` | Fetches a compound from PubChem by name and builds a ball-and-stick model. Option `Kekulize` shows aromatic rings as alternating single/double bonds. |
 | `MolkitInfo` | Click any part of a model to print its formula, bonds, source and parameters. |
+| `MolkitSettings` | Edit a model's parameters (scale, hydrogens, peg sizes, clearance, …) or apply the FDM/Resin preset, then rebuild it. |
+| `MolkitRegenerate` | Rebuild a model from its stored data, e.g. after deleting parts by hand. |
 
 Models are rebuilt from data stored on the model (a locked anchor point), not edited by hand.
 

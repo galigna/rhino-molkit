@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 
 
 @dataclass(frozen=True)
@@ -51,3 +51,20 @@ RESIN = Params(
     chamfer_mm=0.2,
     min_wall_mm=0.6,
 )
+
+PRESETS: dict[str, Params] = {"FDM": FDM, "Resin": RESIN}
+
+
+def with_preset(params: Params, preset: Params) -> Params:
+    """Preset values, except hydrogens: that is a choice about the molecule, not the printer."""
+    return replace(preset, include_hydrogens=params.include_hydrogens)
+
+
+_UNIT_SUFFIXES = ("_mm_per_a", "_mm")  # longest first
+
+
+def option_name(field_name: str) -> str:
+    """Rhino command-line option name for a Params field, e.g. clearance_mm -> Clearance."""
+    for suffix in _UNIT_SUFFIXES:
+        field_name = field_name.removesuffix(suffix)
+    return "".join(word.capitalize() for word in field_name.split("_"))
