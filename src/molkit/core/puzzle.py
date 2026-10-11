@@ -6,6 +6,7 @@ Each piece is a ball with half-bonds; neighbours join at the bond midpoint, peg 
 from __future__ import annotations
 
 import itertools
+import math
 from collections.abc import Iterator
 from dataclasses import dataclass
 from enum import Enum
@@ -95,6 +96,28 @@ def check(pieces: tuple[PieceSpec, ...], params: Params) -> tuple[Issue, ...]:
     """Everything that would make the pieces unprintable or impossible to assemble."""
     per_piece = (issue for piece in pieces for issue in _piece_issues(piece, params))
     return tuple(itertools.chain(per_piece, _overlaps(pieces)))
+
+
+def outline(profile: PegProfile, segments: int = 64) -> tuple[tuple[float, float], ...]:
+    """Cross-section polygon in the joint plane, whose +x axis is the key_ref.
+
+    Samples the circle and clamps x onto the flats: points past a flat land on its chord,
+    which gives the exact D or double-flat shape. 64 segments deviate < 0.003 mm at r = 2 mm.
+    """
+    flat_x = profile.radius - profile.flat_depth
+    low, high = _FLAT_LIMITS[profile.kind](flat_x, profile.radius)
+    angles = (2 * math.pi * k / segments for k in range(segments))
+    return tuple(
+        (min(max(profile.radius * math.cos(a), low), high), profile.radius * math.sin(a))
+        for a in angles
+    )
+
+
+_FLAT_LIMITS = {
+    ProfileKind.ROUND: lambda flat_x, r: (-r, r),
+    ProfileKind.D_FLAT: lambda flat_x, r: (-r, flat_x),
+    ProfileKind.DOUBLE_FLAT: lambda flat_x, r: (-flat_x, flat_x),
+}
 
 
 def _piece(

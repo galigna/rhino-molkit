@@ -1,13 +1,23 @@
 from __future__ import annotations
 
 import dataclasses
+import math
 from pathlib import Path
 
 import pytest
 
 from molkit.core.model import Atom, BondOrder, Molecule, SourceInfo
 from molkit.core.params import FDM
-from molkit.core.puzzle import Gender, Joint, PieceSpec, ProfileKind, build_pieces, check
+from molkit.core.puzzle import (
+    Gender,
+    Joint,
+    PegProfile,
+    PieceSpec,
+    ProfileKind,
+    build_pieces,
+    check,
+    outline,
+)
 from molkit.core.sources.sdf import parse_sdf
 from molkit.core.vec import Vec3
 
@@ -172,3 +182,32 @@ def test_overlapping_balls_are_reported() -> None:
     (issue,) = check(pieces, FDM)
     assert "overlap" in issue.message
     assert issue.atom_index == 0
+
+
+# --- outline: cross-section polygon for the Rhino adapter --------------------------
+
+
+def _xs(profile: PegProfile) -> list[float]:
+    return [x for x, _ in outline(profile)]
+
+
+def test_round_outline_is_a_circle() -> None:
+    points = outline(PegProfile(ProfileKind.ROUND, 2.0, 0.6))
+    assert len(points) == 64
+    assert all(math.hypot(x, y) == pytest.approx(2.0) for x, y in points)
+
+
+def test_d_flat_outline_is_cut_on_the_positive_x_side_only() -> None:
+    xs = _xs(PegProfile(ProfileKind.D_FLAT, 2.0, 0.6))
+    assert max(xs) == pytest.approx(1.4)  # flat at radius - flat_depth
+    assert min(xs) == pytest.approx(-2.0)
+
+
+def test_double_flat_outline_is_cut_on_both_sides() -> None:
+    xs = _xs(PegProfile(ProfileKind.DOUBLE_FLAT, 2.0, 0.6))
+    assert (min(xs), max(xs)) == (pytest.approx(-1.4), pytest.approx(1.4))
+
+
+def test_outline_points_stay_inside_the_circle() -> None:
+    points = outline(PegProfile(ProfileKind.DOUBLE_FLAT, 2.0, 0.6))
+    assert all(math.hypot(x, y) <= 2.0 + 1e-9 for x, y in points)
