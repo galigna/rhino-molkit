@@ -12,7 +12,8 @@ update it when a decision changes.
 - `src/molkit/rhino/` is a **thin adapter**. It turns core specs into Rhino objects and handles user
   input. It makes no chemistry or puzzle decisions. If you need an `if` about atoms, bonds, or
   geometry rules there, move that logic into core.
-- `rhino/commands/*.py` entry scripts only call a function in `molkit.rhino.commands`.
+- `rhino/commands/*.py` entry scripts only call a function in `molkit.rhino.commands`, and their
+  first line is `#! python3`. Without it Rhino may run them in IronPython 2.7.
 - Molecule data and parameters live on the model's anchor object (`molkit.model` user dictionary
   key). Geometry is always **regenerated** from that data and is never patched in place.
 - `rdkit` and `gemmi` are allowed in core. Network access goes only through `core/sources/pubchem.py`
@@ -53,9 +54,10 @@ update it when a decision changes.
 ## Commands
 
 ```bash
-ruff format . && ruff check .
-mypy src/molkit/core
-pytest --cov=molkit.core --cov-branch --cov-fail-under=100
+uv sync                      # Python 3.9 env with pinned rdkit/gemmi
+uv run ruff format . && uv run ruff check .
+uv run mypy                  # strict, core only (config in pyproject.toml)
+uv run pytest --cov=molkit.core
 ```
 
 ## Workflow
