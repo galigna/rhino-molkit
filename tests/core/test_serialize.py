@@ -44,3 +44,15 @@ def test_unknown_schema_version_raises(methane: Molecule) -> None:
 def test_corrupt_data_raises(text: str) -> None:
     with pytest.raises(ModelDataError):
         loads(text)
+
+
+def test_models_saved_before_generated_3d_existed_still_load(methane: Molecule) -> None:
+    data = json.loads(dumps(PuzzleModel("id-1", methane, FDM)))
+    del data["molecule"]["source"]["generated_3d"]
+    assert loads(json.dumps(data)).molecule.source == SourceInfo("pubchem", "methane")
+
+
+def test_generated_3d_flag_round_trips(methane: Molecule) -> None:
+    source = SourceInfo("pubchem", "methane", generated_3d=True)
+    model = PuzzleModel("id-1", dataclasses.replace(methane, source=source), FDM)
+    assert loads(dumps(model)) == model

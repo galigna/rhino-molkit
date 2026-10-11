@@ -40,7 +40,6 @@ methane can't cover, such as double, triple, and aromatic bonds.
   limitation and is documented in the README (see §11, post-MVP).
 - Extended or covalent frameworks (MOFs, silicates, metals), unit-cell or cluster cutting, and
   dangling-bond handling.
-- Generating 3D coordinates for compounds that have no PubChem 3D record (we raise a clear error).
 - Engraved labels, flat print bases, and automatic support or orientation planning.
 - Magnets, separate connector pieces, and other joint styles.
 - Grasshopper components and a GUI panel. Interaction is through Rhino commands only.
@@ -118,7 +117,7 @@ Element(symbol, atomic_number, mass, covalent_radius, vdw_radius, color_rgb)
 
 Atom(element: str, position: Vec3)                  # element: canonical symbol, e.g. "Cl"
 Bond(a: int, b: int, order: BondOrder)              # indices into Molecule.atoms, either order
-SourceInfo(kind: Literal["pubchem", "cif"], identifier: str)
+SourceInfo(kind: Literal["pubchem", "cif"], identifier: str, generated_3d: bool = False)
 Molecule(name: str, atoms: tuple[Atom, ...], bonds: tuple[Bond, ...], source: SourceInfo)
     .neighbors(i) -> tuple[int, ...]
 

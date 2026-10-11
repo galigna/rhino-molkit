@@ -38,6 +38,7 @@ class SourceInfo:
 
     kind: Literal["pubchem", "cif"]
     identifier: str
+    generated_3d: bool = False  # coordinates computed by RDKit, not measured or from PubChem
 
 
 @dataclass(frozen=True)

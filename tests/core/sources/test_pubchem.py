@@ -10,10 +10,12 @@ import pytest
 from molkit.core.errors import CompoundNotFoundError, NetworkError, No3DConformerError
 from molkit.core.model import SourceInfo
 from molkit.core.sources import pubchem
-from molkit.core.sources.pubchem import fetch_sdf
+from molkit.core.sources.pubchem import fetch_molecule, fetch_sdf
 from molkit.core.sources.sdf import parse_sdf
 
-METHANE_SDF = (Path(__file__).parents[2] / "fixtures" / "methane.sdf").read_bytes()
+FIXTURES = Path(__file__).parents[2] / "fixtures"
+METHANE_SDF = (FIXTURES / "methane.sdf").read_bytes()
+METHANE_2D_SDF = (FIXTURES / "methane_2d.sdf").read_bytes()
 
 # Bodies PubChem actually returns with its 404s (checked 2026-10-11).
 NO_CID = b"Status: 404\nCode: PUGREST.NotFound\nMessage: No CID found\n"
@@ -87,3 +89,42 @@ def test_default_transport_identifies_itself_and_times_out(monkeypatch) -> None:
     assert pubchem.http_get("https://example.test") == b"sdf"
     assert seen["agent"].startswith("molkit")
     assert seen["timeout"] > 0
+
+
+# --- fetch_molecule: 3D record, or 2D record + RDKit -------------------------------
+
+
+def _pubchem(has_3d: bool):
+    """Fake PubChem that knows methane, with or without a 3D record."""
+
+    def fetch(url: str) -> bytes:
+        if "record_type=3d" not in url:
+            return METHANE_2D_SDF
+        if has_3d:
+            return METHANE_SDF
+        raise HTTPError(url, 404, "error", None, io.BytesIO(NO_3D))  # type: ignore[arg-type]
+
+    return fetch
+
+
+def test_fetch_molecule_uses_pubchem_3d_record_when_there_is_one() -> None:
+    methane = fetch_molecule("methane", fetch=_pubchem(has_3d=True))
+    assert methane.source == SourceInfo("pubchem", "methane")
+    assert len(methane.atoms) == 5
+
+
+def test_fetch_molecule_generates_3d_from_the_2d_record_otherwise() -> None:
+    methane = fetch_molecule("methane", fetch=_pubchem(has_3d=False))
+    assert methane.source == SourceInfo("pubchem", "methane", generated_3d=True)
+    assert len(methane.atoms) == 5
+
+
+def test_fetch_molecule_passes_kekulize_on() -> None:
+    benzene_sdf = (FIXTURES / "benzene.sdf").read_bytes()
+    benzene = fetch_molecule("benzene", kekulize=True, fetch=lambda url: benzene_sdf)
+    assert "aromatic" not in {b.order.value for b in benzene.bonds}
+
+
+def test_fetch_molecule_still_reports_unknown_names() -> None:
+    with pytest.raises(CompoundNotFoundError):
+        fetch_molecule("notacompound", fetch=_http_error(404, NO_CID))
