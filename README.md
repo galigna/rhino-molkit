@@ -1,157 +1,284 @@
-# molkit
+# molkit: print your own molecule puzzle
 
-A Rhino 8 plugin that turns molecules into 3D-printable puzzles: one piece per atom, joined by
-pegs whose shape encodes the bond order.
+molkit turns any molecule into a **3D-printable puzzle**. Every atom becomes one piece, and the
+pieces click together with pegs, just like the real atoms are bonded. The shape of each peg even
+tells you what kind of bond it is.
 
-Type a compound name (fetched from PubChem) or open a crystal structure (CIF), and molkit builds
-an accurate ball-and-stick model, splits it into printable pieces and exports one STL per piece
-with assembly instructions.
+You type a molecule's name, for example `caffeine`, and molkit:
 
-> **Status: v0.1.1-beta, early.** Every command works, but the peg and clearance sizes have not been
-> test-printed yet ([docs/print-tests.md](docs/print-tests.md)). Expect to adjust `Clearance`
-> for your printer.
+1. downloads the molecule's real 3D shape from [PubChem](https://pubchem.ncbi.nlm.nih.gov/), a
+   free chemistry database,
+2. shows it as a ball-and-stick model,
+3. cuts it into puzzle pieces, one per atom,
+4. saves every piece as a file you can send to a 3D printer.
 
-## How the puzzle works
+You don't need to know how to code or how to use design software. This page walks you through
+everything, step by step.
 
-Each atom is a ball with half-bonds attached. Neighbouring pieces meet at the middle of each bond,
-where one half carries a peg and the other a hole:
+> **This is an early version (0.1.1-beta).** The pieces have not been test-printed yet, so the
+> pegs may come out a little too tight or too loose on your printer.
+> [Changing the fit](#the-pegs-are-too-tight-or-too-loose) takes one setting.
 
-- **The heavier atom gets the hole**, so hydrogens and halogens always carry pegs. In a bond
-  between equal atoms (C–C), the lower-numbered atom gets the hole.
-- **The peg shape follows how the bond rotates:**
+---
 
-  | Bond | Peg | Behaviour |
-  |---|---|---|
-  | Single | round | spins freely, like a real single bond |
-  | Double | one flat (D shape) | locked, fits one way: the bond is planar |
-  | Aromatic | two flats | locked, fits two ways (180° apart) |
-  | Triple | round, thicker | linear, so rotation doesn't matter |
+## Contents
 
-- **Flats face the π orbital**, perpendicular to the plane of the molecule, so the locked pieces
-  assemble in the real geometry.
-- **Holes are enlarged by a clearance** (0.2 mm for FDM), and pegs have a chamfered tip.
+1. [What you need](#what-you-need)
+2. [Step 1: Install Rhino 8](#step-1-install-rhino-8)
+3. [Step 2: Install molkit](#step-2-install-molkit)
+4. [Step 3: Make your first puzzle](#step-3-make-your-first-puzzle)
+5. [Step 4: Print and assemble](#step-4-print-and-assemble)
+6. [More things you can do](#more-things-you-can-do)
+7. [All commands](#all-commands)
+8. [Something went wrong](#something-went-wrong)
 
-Before building, molkit checks the pieces can be printed: walls around holes, joints inside
-balls, overlapping balls, holes reaching past the ball centre. Problems are listed instead of
-building broken pieces.
+---
 
-## Commands
+## What you need
 
-| Command | Does |
-|---|---|
-| `MolkitFetch` | Fetches a compound from PubChem by name and builds a ball-and-stick model. PubChem has 3D structures only for molecules up to 50 heavy atoms; for larger ones RDKit generates the coordinates. Option `Kekulize` shows aromatic rings as alternating single and double bonds. |
-| `MolkitImportCif` | Opens a CIF file of a molecular crystal, applies the crystal symmetry and builds one whole molecule, even if the file cuts it at the cell edge. Polymers and frameworks are rejected. |
-| `MolkitInfo` | Click any part of a model to print its formula, bonds, source and parameters (F2 shows the full output). |
-| `MolkitSettings` | Edit a model's parameters (scale, hydrogens, peg sizes, clearance, …) or apply the `FDM` / `Resin` preset, then rebuild. |
-| `MolkitPuzzle` | Splits a model into printable pieces, one per atom. |
-| `MolkitExportStl` | Writes one STL per piece (in mm) and a `<name>_manifest.json` saying which piece joins which. |
-| `MolkitRegenerate` | Rebuilds a model from its stored data, e.g. after deleting parts by hand. |
+- **A Windows computer.** molkit is made for Windows. It may work on a Mac, but that has not
+  been tested.
+- **Rhino 8.** molkit runs inside it (see below).
+- **An internet connection**, to download molecules.
+- **A 3D printer**, or access to one. Many libraries, schools and "makerspaces" have printers
+  you can use, and online printing services can print the files and post them to you.
 
-A typical session: `MolkitFetch methane` → `MolkitPuzzle` → `MolkitExportStl` → slice and print
-→ assemble using the manifest.
+### What is Rhino 8?
 
-Models are **regenerated from data stored on the model** (a locked anchor point on the `_data`
-layer), not edited by hand. Changing a setting rebuilds the model and its pieces.
+[Rhino](https://www.rhino3d.com/) (full name *Rhinoceros*) is a program for designing 3D
+objects. Designers, architects and jewellers use it. molkit is a **plugin**: an add-on that gives
+Rhino new abilities, in this case building molecule puzzles. You won't need to learn Rhino itself;
+molkit does the design work for you, and this guide tells you exactly what to type.
 
-## Installing
+Rhino is paid software, but you can **try it free for 90 days** with every feature working, which
+is plenty to make puzzles. Students and teachers can buy it at a large discount.
 
-1. Download the `.yak` file from the
-   [GitHub releases](https://github.com/galigna/rhino-molkit/releases).
-2. In PowerShell, install it with Rhino's package manager (use the file name you downloaded):
+---
+
+## Step 1: Install Rhino 8
+
+1. Go to the Rhino download page: <https://www.rhino3d.com/download/>
+2. Choose **Rhino 8** for **Windows** and **Download** the free evaluation (trial). You will be
+   asked for an email address, where the license key is sent.
+3. Open the downloaded file and follow the installer, keeping all the default choices.
+4. Start Rhino once and enter your email and license key when asked, so it is ready to use.
+5. **Close Rhino** before the next step.
+
+---
+
+## Step 2: Install molkit
+
+### 2a. Download molkit
+
+1. Open the molkit download page: <https://github.com/galigna/rhino-molkit/releases>
+2. Under the newest version, open **Assets** and click the file whose name ends in **`.yak`**
+   (for example `molkit-0.1.1-beta+39182-rh8-any.yak`).
+3. Your browser saves it to your **Downloads** folder. Leave it there.
+
+### 2b. Install it with one command
+
+Rhino installs plugins with a small helper program. You start it by pasting **one line** into
+**PowerShell**, a window where you can type commands to Windows. Don't worry, you only need to
+copy and paste.
+
+1. Make sure **Rhino is closed**.
+2. Click the Windows **Start** button, type **`PowerShell`**, and click **Windows PowerShell**.
+   A dark blue or black window opens.
+3. Copy this whole line (use the copy button in the corner of the box, if you see one):
+
    ```powershell
-   & "C:\Program Files\Rhino 8\System\Yak.exe" install .\molkit-0.1.1-beta+39182-rh8-any.yak
+   & "C:\Program Files\Rhino 8\System\Yak.exe" install (Get-ChildItem "$env:USERPROFILE\Downloads\molkit-*.yak" | Sort-Object LastWriteTime | Select-Object -Last 1).FullName
    ```
-3. Restart Rhino and type `MolkitFetch`.
 
-The first command installs RDKit and gemmi into Rhino's Python (about 40 MB). Rhino's installer
-times out after 15 s, so on a slow connection the first attempt may fail. Just run it again.
+   *What it does:* it finds the newest molkit file in your Downloads folder and hands it to
+   Rhino's plugin installer (`Yak.exe`).
 
-Requires Rhino 8 on Windows. macOS should work (the packages ship Mac wheels) but is untested.
+4. Click inside the PowerShell window, **right-click** (or press **Ctrl+V**) to paste the line,
+   and press **Enter**.
+5. After a few seconds you should see a message that molkit was installed. You can close the
+   PowerShell window.
 
-## Parameters
+If you see an error instead, check [Something went wrong](#something-went-wrong).
 
-`MolkitSettings` exposes every parameter. The presets:
+### 2c. Open Rhino
 
-| Parameter | FDM (default) | Resin |
+Start Rhino. Rhino first shows a window with **templates** (starting points for a new file).
+Choose **Small Objects - Millimeters**. molkit works in millimetres, like 3D printers do.
+
+The **first** time you use a molkit command, it downloads some free chemistry tools it needs
+(about 40 MB). This takes a minute, and it happens only once. If your internet is slow and it
+stops with a *timed out* message, simply run the same command again.
+
+---
+
+## Step 3: Make your first puzzle
+
+You give Rhino instructions by typing **commands**. At the top of the Rhino window there is a line
+that says **`Command:`**. Just start typing; your text appears there. Press **Enter** to run it.
+
+Let's build **methane**, the simplest molecule: one carbon atom with four hydrogens.
+
+1. Type **`MolkitFetch`** and press **Enter**.
+2. When it asks for a name, type **`methane`** and press **Enter**.
+   A grey ball (carbon) with four white balls (hydrogen) appears. To look around:
+   - **drag with the right mouse button** in the view labelled *Perspective* to turn the model,
+   - **scroll the mouse wheel** to zoom.
+3. Type **`MolkitPuzzle`**, press **Enter**, then **click the model**.
+   molkit builds the five puzzle pieces right on top of the model.
+4. To see only the pieces, hide the model: in the **Layers** panel (at the side of the Rhino
+   window; if you can't find it, type **`Layer`** and press **Enter**), open the
+   **Molkit → methane** folder and click the **light bulb** next to **BallStick**.
+
+---
+
+## Step 4: Print and assemble
+
+### Save the pieces
+
+1. Type **`MolkitExportStl`**, press **Enter**, and **click the model**.
+2. Choose an empty folder, for example a new folder called *methane puzzle*.
+
+molkit saves one file per piece:
+
+```
+methane_000_C.stl    ← the carbon piece
+methane_001_H.stl    ← a hydrogen piece
+methane_002_H.stl
+methane_003_H.stl
+methane_004_H.stl
+methane_manifest.json
+```
+
+The letters at the end tell you which atom each piece is (**C** = carbon, **H** = hydrogen,
+**O** = oxygen, **N** = nitrogen, and so on). `methane_manifest.json` is a text list of which piece
+connects to which; you can open it with Notepad if you get stuck.
+
+### Print
+
+`.stl` files are the standard format for 3D printing. Open them in your printer's **slicer**
+program, the software that prepares files for your printer (for example *PrusaSlicer*,
+*UltiMaker Cura* or *Bambu Studio*, all free), and print them like any other model. If you use a
+printing service, upload the `.stl` files.
+
+### Assemble
+
+Push each peg into a hole. The peg shapes match the bonds of the real molecule:
+
+| Peg shape | Bond | How it behaves |
 |---|---|---|
-| Scale (mm per Å) | 20 | 12 |
-| Ball radius (× van der Waals radius) | 0.25 | 0.25 |
-| Stick radius | 3.5 mm | 2.2 mm |
-| Peg radius / triple-bond peg radius | 1.75 / 2.1 mm | 1.1 / 1.35 mm |
-| Flat depth | 0.6 mm | 0.4 mm |
-| Peg length / extra hole depth | 5.0 / 0.4 mm | 3.5 / 0.3 mm |
-| Clearance (radial) | 0.2 mm | 0.1 mm |
-| Chamfer | 0.3 mm | 0.2 mm |
-| Minimum wall | 1.0 mm | 0.6 mm |
+| Round | single bond | the piece can spin, just like a real single bond |
+| One flat side (D shape) | double bond | locks in place, fits only one way |
+| Two flat sides | aromatic bond (in rings like benzene) | locks in place, fits two ways |
+| Round and thicker | triple bond | goes straight through |
 
-Applying a preset keeps your hydrogens setting.
+Hydrogen pieces always have pegs; heavier atoms, like carbon, have the holes.
 
-## Limitations
+---
 
-- **Rings may not close.** Every joint is a straight push-fit along its bond, so the last bond
-  of a ring only goes in if the plastic flexes. Small rings are hardest.
-- **Untested print sizes.** See the status note above.
-- **Molecular crystals only.** CIF import extracts one discrete molecule; extended structures
-  (MOFs, silicates, metals) are rejected.
-- **Metals.** The element table covers organic elements, halogens, common counter-ions and the
-  metals with Bondi van der Waals radii (Ni, Cu, Zn, Pd, Ag, Pt, Au, Hg, …), but not Fe, Co,
-  Mn or Cr. Bonds around metals are always single.
-- **Generated coordinates** (large PubChem compounds) are one plausible shape, not a measured
-  structure.
-- **New models are drawn at the world origin**, so two models overlap. You can move one away,
-  but regenerating puts it back at the origin.
+## More things you can do
 
-## Architecture
+### Build other molecules
 
-```mermaid
-flowchart LR
-    name["compound name"] --> pubchem["sources/pubchem.py<br/>PubChem PUG REST"]
-    file[".cif file"] --> cif["sources/cif.py<br/>gemmi + RDKit"]
-    pubchem --> sdf["sources/sdf.py<br/>RDKit"]
-    sdf --> mol[("Molecule")]
-    cif --> mol
-    mol --> ballstick["ballstick.py"] --> draw
-    mol --> puzzle["puzzle.py<br/>pieces + checks"] --> pieces["rhino/pieces.py<br/>Breps"]
-    pieces --> export["rhino/export.py"] --> stl["stl.py + manifest.py"]
-    subgraph core ["src/molkit/core: pure Python, no Rhino, 100% tested"]
-        pubchem
-        cif
-        sdf
-        mol
-        ballstick
-        puzzle
-        stl
-    end
-    subgraph adapter ["src/molkit/rhino: thin Rhino adapter"]
-        draw["draw.py<br/>layers, blocks"]
-        pieces
-        export
-    end
-```
+Use `MolkitFetch` with any molecule's **English name**, for example `water`, `ethanol`,
+`caffeine`, `aspirin` or `glucose`. Start small: every atom is one piece, and caffeine already
+has 24 pieces.
 
-- **`src/molkit/core/`** holds every chemistry and geometry decision: reading PubChem and CIF,
-  the molecule model, ball-and-stick layout, puzzle rules, printability checks, STL bytes and
-  the manifest. It never imports Rhino; a test enforces that.
-- **`src/molkit/rhino/`** turns core's specs into Rhino objects and handles user input. It makes
-  no decisions of its own.
-- **`rhino/commands/`** holds each command's three-line entry script.
+Very large molecules (more than about 50 atoms besides hydrogens) still work. PubChem has no 3D
+shape for them, so molkit calculates one, which takes a few seconds.
 
-See [SPEC.md](SPEC.md) for the full design and [CLAUDE.md](CLAUDE.md) for the coding rules.
+### Leave out the hydrogens
 
-## Development
+Hydrogens make up many of the pieces. To leave them out: type **`MolkitSettings`**, press
+**Enter**, click the model, click **IncludeHydrogens** so it says **No**, then press **Enter**.
 
-```bash
-uv sync                         # Python 3.9 (Rhino 8's version) with the pinned rdkit/gemmi
-uv run pytest --cov=molkit.core # core must stay at 100% line and branch coverage
-uv run ruff check . && uv run mypy
-```
+### Make the pieces bigger or smaller
 
-Requires [uv](https://docs.astral.sh/uv/). CI runs the same checks on every pull request.
+In `MolkitSettings`, click **Scale** and type a new number. The default is **20** (a carbon ball
+about 17 mm across); **30** makes everything 1.5 times bigger.
 
-The Rhino side can't run in CI: [docs/smoke-test.md](docs/smoke-test.md) is the manual checklist,
-including how to run the commands straight from a checkout. Building the plugin is described in
-[docs/packaging.md](docs/packaging.md).
+### Use a resin printer
+
+In `MolkitSettings`, click **Resin**. This switches to smaller, finer pieces with tighter pegs,
+suited to resin printers.
+
+### Open a crystal structure file (CIF)
+
+Scientists publish measured molecule structures as **CIF files**, for example in the free
+[Crystallography Open Database](https://www.crystallography.net/). Download a `.cif` file, type
+**`MolkitImportCif`** in Rhino, and choose the file. molkit takes one complete molecule out of
+the crystal and builds it like any other.
+
+---
+
+## All commands
+
+| Command | What it does |
+|---|---|
+| `MolkitFetch` | Builds a molecule from its name. |
+| `MolkitImportCif` | Builds a molecule from a crystal structure file (`.cif`). |
+| `MolkitPuzzle` | Cuts a molecule into puzzle pieces. |
+| `MolkitExportStl` | Saves the pieces as files for 3D printing. |
+| `MolkitSettings` | Changes sizes, the peg fit, hydrogens on or off, or switches between the FDM and Resin presets. |
+| `MolkitInfo` | Shows facts about a molecule: its formula, its bonds and the current settings. Press **F2** to see the full text. |
+| `MolkitRegenerate` | Rebuilds a molecule, for example after you deleted parts of it by accident. |
+
+---
+
+## Something went wrong
+
+### PowerShell shows an error when installing
+
+- An error that mentions a missing file or argument: the `.yak` file is not in your **Downloads**
+  folder, or its name doesn't start with `molkit-`. Move or rename it, then paste the line again.
+- *"…Yak.exe…is not recognized…"*: Rhino 8 is not installed in the usual place. Check that Step 1
+  finished, or ask someone to point the command to Rhino's folder.
+
+### Rhino says "Unknown command: MolkitFetch"
+
+molkit is not installed, or Rhino was open while you installed it. Close Rhino, do
+[Step 2b](#2b-install-it-with-one-command) again, then start Rhino.
+
+### "PubChem has no compound named …"
+
+Check the spelling, or try another common name of the molecule (for example `vitamin C` or
+`ascorbic acid`).
+
+### "timed out" or "could not reach PubChem"
+
+Your internet was too slow or briefly offline. Wait a moment and run the command again.
+
+### "no pieces built"
+
+molkit found that some pieces would print badly, for example walls that are too thin. The lines
+above the message say what is wrong. Usually the cause is a setting that was changed: open
+`MolkitSettings` and click **FDM** (or **Resin**) to go back to the standard sizes.
+
+### The pegs are too tight or too loose
+
+Every printer is a little different. Type `MolkitSettings`, click the model, click
+**Clearance**, and type a new number, then press **Enter** and export again:
+
+- pegs **too tight**: make it bigger, for example `0.3` (the default is `0.2`),
+- pegs **too loose**: make it smaller, for example `0.15`.
+
+### The puzzle won't close around a ring
+
+Molecules with rings, like benzene, are hard to finish: the last piece of a ring has to bend a
+little to fit. This is a known limitation of this early version.
+
+### Still stuck?
+
+[Open an issue](https://github.com/galigna/rhino-molkit/issues) on GitHub, describe what you did,
+and copy the message Rhino showed. Ask the person who shared molkit with you if you're not sure
+how.
+
+---
+
+## For developers
+
+How molkit works inside, how to run its tests and how to build the plugin:
+[docs/development.md](docs/development.md).
 
 ## License
 
-[MIT](LICENSE)
+molkit is free and open source under the [MIT License](LICENSE).
