@@ -1,9 +1,9 @@
 """Post-build fixes for the toolbar in the Script Editor's plugin package.
 
-- Script Editor writes the toolbar as `<dock_bar_info visible="True" floating="True" />`, and
-  Rhino reads plugin toolbars fresh on every start, so it pops up as a floating window over the
-  template dialog each time; hidden instead, beginners would never find it. So it is docked at
-  the top, visible, with the attributes of Rhino's own default top toolbar (from Rhino.UI.dll).
+- The toolbar stays visible and floating, Script Editor's default: on first use a small molkit
+  window shows beginners the buttons. Rhino then saves its state (settings/.../containers.xml),
+  so once closed or docked it stays that way. Hidden, nobody finds it; a minimal "docked at the
+  top" entry made Rhino 8 show nothing at all. Earlier patched packages are reset to this.
 - Script Editor orders the buttons like the project's command list and has no separators.
   This applies LAYOUT, using Rhino's own separator: `<tool_bar_item ... button_style="spacer" />`.
 
@@ -33,19 +33,15 @@ LAYOUT = [
 ]
 
 _DOCK_INFO = re.compile(r"<dock_bar_info\b[^>]*/>")
-# 59419 is the id Rhino's own default toolbar file uses for its top dock bar.
-DOCKED = (
-    '<dock_bar_info visible="True" floating="False" docking="True" '
-    'dock_location_u="59419" dock_location="top" />'
-)
+FLOATING = '<dock_bar_info visible="True" floating="True" />'
 _SPACER = re.compile(r'\s*<tool_bar_item\b[^>]*button_style="spacer"[^>]*/>')
 _ITEM = re.compile(r"<tool_bar_item\b.*?</tool_bar_item>", re.S)
 _NAME = re.compile(r"<locale_1033>(\w+)</locale_1033>")
 
 
 def fix(rui: str) -> str:
-    """The toolbar XML docked at the top, with buttons in LAYOUT order and separators."""
-    return _arrange(_DOCK_INFO.sub(DOCKED, rui))
+    """The toolbar XML visible and floating, with buttons in LAYOUT order and separators."""
+    return _arrange(_DOCK_INFO.sub(FLOATING, rui))
 
 
 def _arrange(rui: str) -> str:
@@ -84,7 +80,7 @@ def main(yak: Path) -> None:
     patch_yak(yak)
     for rui in yak.parent.glob("*.rui"):
         rui.write_text(fix(rui.read_text(encoding="utf-8-sig")), encoding="utf-8")
-    print(f"toolbar docked at the top and arranged in {yak.name}")
+    print(f"toolbar shown floating on first use and arranged in {yak.name}")
 
 
 if __name__ == "__main__":

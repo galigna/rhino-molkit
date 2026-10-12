@@ -9,10 +9,7 @@ from pathlib import Path
 _tool = runpy.run_path(str(Path(__file__).parents[1] / "tools" / "fix_toolbar.py"))
 fix, patch_yak = _tool["fix"], _tool["patch_yak"]
 
-DOCKED = (
-    '<dock_bar_info visible="True" floating="False" docking="True" '
-    'dock_location_u="59419" dock_location="top" />'
-)
+FLOATING = '<dock_bar_info visible="True" floating="True" />'
 COMMANDS = ["ExportStl", "Fetch", "ImportCif", "Info", "Puzzle", "Regenerate", "Settings"]
 
 
@@ -37,13 +34,17 @@ def _layout(rui: str) -> list[str]:
     return [t or "|" for t in tokens]
 
 
-def test_toolbar_is_shown_docked_at_the_top_not_floating() -> None:
-    assert fix(_rui(COMMANDS)).count(DOCKED) == 1
+def test_toolbar_stays_visible_and_floating_for_first_use() -> None:
+    assert fix(_rui(COMMANDS)).count(FLOATING) == 1
 
 
-def test_an_earlier_hidden_toolbar_is_docked_too() -> None:
+def test_packages_patched_by_older_versions_are_reset() -> None:
     hidden = _rui(COMMANDS).replace('visible="True"', 'visible="False"')
-    assert DOCKED in fix(hidden)
+    docked = _rui(COMMANDS).replace(
+        'floating="True"', 'floating="False" docking="True" dock_location="top"'
+    )
+    assert FLOATING in fix(hidden)
+    assert FLOATING in fix(docked)
 
 
 def test_buttons_are_grouped_by_task() -> None:

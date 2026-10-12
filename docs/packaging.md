@@ -41,9 +41,14 @@ git-ignored; release files go on GitHub, not in the repo.
 uv run python tools/fix_toolbar.py rhino/build/rh8/<the .yak file>
 ```
 
-- It **docks the toolbar at the top.** Script Editor marks it floating, and Rhino reads plugin
-  toolbars fresh on each start, so otherwise it pops up over the template window every time
-  Rhino opens. Hiding it instead would leave beginners without buttons.
+- It **keeps the toolbar visible and floating** (Script Editor's default), so on first use a
+  small molkit window shows the buttons. Rhino saves toolbar state in
+  `%APPDATA%\McNeel\Rhinoceros\8.0\settings\Scheme__Default\containers.xml`, so once the
+  window is closed or docked it stays that way. (Hidden by default, nobody finds the buttons;
+  a minimal "docked at the top" entry made Rhino 8 show nothing.)
+- Because of that saved state, **toolbar changes only show on a machine that hasn't run molkit
+  before.** To test them, close Rhino and remove molkit's entries from `containers.xml` and its
+  `molkit_<guid>.xml` next to it (back them up first).
 - It **orders the buttons and adds separators** (Script Editor can't): get a molecule
   (Fetch, ImportCif) | look and change (Info, Regenerate, Settings) | puzzle (Puzzle,
   ExportStl). The order is `LAYOUT` at the top of the script; a new command not listed there
