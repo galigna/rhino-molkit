@@ -18,9 +18,12 @@ differ slightly in other versions.
    `MolkitSettings.py`). The file name becomes the command name. Their `# r:` lines make Rhino
    install RDKit and gemmi on first use.
 4. **Libraries:** add the folder `<repo>\src\molkit` as a Python 3 library, so `import molkit`
-   resolves to the bundled copy. Script Editor stores it as an absolute `file:///` path and
-   offers no way to edit it, so after cloning the repo elsewhere, remove the library and add it
-   again from your own checkout. The path never ends up in the built package.
+   resolves to the bundled copy. The committed project uses the relative path
+   `"base": "../src/molkit/"`, which Script Editor resolves against the project file, so it
+   builds from any clone. But Script Editor **saves it back as an absolute** `file:///` path
+   into your own folder. Before committing `molkit.rhproj`, set that line back to
+   `"../src/molkit/"`; `tests/test_rhino_scripts.py` fails until you do. The path never ends up
+   in the built package either way.
 5. **Icons:** give each command its `rhino\icons\<Command>.svg` in **both** the Light and the
    Dark slot; an empty slot leaves a blank button in that theme. The project embeds the icons,
    so the SVGs in `rhino/icons/` are the editable sources.
