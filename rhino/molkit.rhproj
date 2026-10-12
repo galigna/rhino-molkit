@@ -255,7 +255,7 @@
     {
       "type": "uri",
       "library": {
-        "base": "file:///C:/Users/Galina/Documents/Claude Projects/Rhino CIF Plugin/src/molkit/",
+        "base": "../src/molkit/",
         "language": {
           "id": "*.*.python",
           "version": "3.*.*"
