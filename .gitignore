@@ -11,3 +11,4 @@ build/
 *.yak
 dist/
 *.egg-info/
+tutorials/

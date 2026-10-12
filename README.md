@@ -127,6 +127,8 @@ other buttons, and it stays there from then on. Each button does the same as typ
 (hold the mouse over a button to see its name). If the window is closed, the commands can still
 be typed.
 
+![Dragging the molkit button window to the top of Rhino](docs/media/dock-toolbar.gif)
+
 The first example is **methane**, the simplest molecule: one carbon atom with four hydrogens.
 
 1. Type **`MolkitFetch`** and press **Enter**.
@@ -134,9 +136,14 @@ The first example is **methane**, the simplest molecule: one carbon atom with fo
    A grey ball (carbon) with four white balls (hydrogen) appears. To look around:
    - **drag with the right mouse button** in the view labelled *Perspective* to turn the model,
    - **scroll the mouse wheel** to zoom.
+
+   ![Typing MolkitFetch and methane builds the ball-and-stick model](docs/media/fetch-methane.gif)
+
 3. Type **`MolkitPuzzle`**, press **Enter**, then **click the model**.
    The ball-and-stick model turns into five puzzle pieces. (Want the ball-and-stick model back?
    Type **`MolkitRegenerate`** and click a piece.)
+
+   ![MolkitPuzzle makes the pieces; MolkitRegenerate brings the model back](docs/media/puzzle-regenerate.gif)
 
 ---
 
