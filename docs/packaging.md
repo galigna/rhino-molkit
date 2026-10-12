@@ -47,8 +47,13 @@ uv run python tools/fix_toolbar.py rhino/build/rh8/<the .yak file>
   window is closed or docked it stays that way. (Hidden by default, nobody finds the buttons;
   a minimal "docked at the top" entry made Rhino 8 show nothing.)
 - Because of that saved state, **toolbar changes only show on a machine that hasn't run molkit
-  before.** To test them, close Rhino and remove molkit's entries from `containers.xml` and its
-  `molkit_<guid>.xml` next to it (back them up first).
+  before.** Rhino applies a plugin's toolbar defaults only when its `.rui` file is new to it.
+  To test toolbar changes, close Rhino, back up `containers.xml`, and remove **every** line or
+  block that mentions molkit's GUID (`9e5499a0-8263-44b2-82a5-d1bc6735a3f8`):
+  - the `<file_name …>molkit.rui</file_name>` registration. Keep this one and Rhino treats the
+    toolbar as known and closed, and shows nothing;
+  - the `<dock_bar guid="9e5499a0-…">` block and any `<removed_item Item1="9e5499a0-…" />`;
+  - also delete `molkit_9e5499a0-….xml` in the same folder (Rhino's saved copy of the buttons).
 - It **orders the buttons and adds separators** (Script Editor can't): get a molecule
   (Fetch, ImportCif) | look and change (Info, Regenerate, Settings) | puzzle (Puzzle,
   ExportStl). The order is `LAYOUT` at the top of the script; a new command not listed there

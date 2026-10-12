@@ -119,7 +119,8 @@ The test files are in `<repo>\tests\fixtures`.
 - [ ] Cancel the file dialog: nothing happens.
 
 ### Toolbar (installed build)
-Toolbar defaults only apply where molkit's toolbar state isn't saved yet (see packaging.md).
+Toolbar defaults only apply where Rhino has never seen molkit's toolbar file; to test them on a
+machine that has, reset its saved state as described in packaging.md.
 - [ ] First start: a small floating molkit window with the buttons appears.
 - [ ] Close it, restart Rhino: it stays closed. Or drag it to an edge to dock it, restart: it
       stays docked.

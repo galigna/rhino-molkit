@@ -116,6 +116,12 @@ stops with a *timed out* message, simply run the same command again.
 You give Rhino instructions by typing **commands**. At the top of the Rhino window there is a line
 that says **`Command:`**. Just start typing; your text appears there. Press **Enter** to run it.
 
+**The molkit buttons.** The first time you open Rhino after installing molkit, a small window
+with molkit's buttons appears. Drag it by its title to the top of the Rhino window, next to the
+other buttons, and it stays there from then on. Each button does the same as typing the command
+(hold the mouse over a button to see its name). If you closed the window instead, no problem:
+typing the commands always works.
+
 Let's build **methane**, the simplest molecule: one carbon atom with four hydrogens.
 
 1. Type **`MolkitFetch`** and press **Enter**.
