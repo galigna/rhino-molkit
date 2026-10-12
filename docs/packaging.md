@@ -32,6 +32,16 @@ In the Script Editor: **Publish → Build Project** (target Rhino 8). The output
 `<repo>\rhino\build\rh8\`: a `.rhp`, a `.yak` and the package's `manifest.yml`. `build/` is
 git-ignored; release files go on GitHub, not in the repo.
 
+**Then, after every build**, hide the toolbar by default. Script Editor marks it visible and
+floating, and Rhino reads plugin toolbars fresh on each start, so otherwise the molkit toolbar
+pops up over the window every time Rhino opens:
+
+```bash
+uv run python tools/hide_toolbar.py rhino/build/rh8/<the .yak file>
+```
+
+Users dock the toolbar themselves or open it from Rhino's toolbar list.
+
 ## 3. Test the built plugin, not the checkout
 
 1. Disable the development setup: rename
