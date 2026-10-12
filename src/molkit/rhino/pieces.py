@@ -23,14 +23,20 @@ from molkit.core.vec import Vec3
 # Rhino booleans fail on coincident faces, so pegs start this far inside the stub and holes
 # overshoot the stub's end face by the same amount.
 _OVERLAP_MM = 0.5
+# Geometry tolerance, independent of the document: a metre template's tolerance (~1 mm) is
+# coarser than the 2 mm pegs, and capping and booleans then fail. Far below printer resolution.
+_TOLERANCE_MM = 0.01
 
 
-def piece_brep(piece: PieceSpec, mm: float, tolerance: float) -> Brep | None:
-    """The printable solid for one piece, or None if Rhino's booleans fail."""
-    solids = [Sphere(point(piece.center, mm), piece.ball_radius * mm).ToBrep()]
-    solids += [_stub(piece, j, mm) for j in piece.joints]
-    solids += [_peg(piece, j, mm, tolerance) for j in piece.joints if j.gender is Gender.PEG]
+def piece_brep(piece: PieceSpec, mm: float) -> Brep | None:
+    """The printable solid for one piece, or None if Rhino can't build it."""
+    tolerance = _TOLERANCE_MM * mm
+    pegs = [_peg(piece, j, mm, tolerance) for j in piece.joints if j.gender is Gender.PEG]
     holes = [_hole(piece, j, mm, tolerance) for j in piece.joints if j.gender is Gender.HOLE]
+    if None in pegs or None in holes:
+        return None
+    solids = [Sphere(point(piece.center, mm), piece.ball_radius * mm).ToBrep()]
+    solids += [_stub(piece, j, mm) for j in piece.joints] + pegs
     body = _single(Brep.CreateBooleanUnion(solids, tolerance)) if len(solids) > 1 else solids[0]
     if body is None or not holes:
         return body
@@ -46,7 +52,7 @@ def _stub(piece: PieceSpec, joint: Joint, mm: float) -> Brep:
     return Cylinder(Circle(plane, piece.stick_radius * mm), joint.length * mm).ToBrep(True, True)
 
 
-def _peg(piece: PieceSpec, joint: Joint, mm: float, tolerance: float) -> Brep:
+def _peg(piece: PieceSpec, joint: Joint, mm: float, tolerance: float) -> Brep | None:
     # Chamfer: the tip section is the profile shrunk by the chamfer (its flats move in too).
     tip = replace(joint.profile, radius=joint.profile.radius - joint.chamfer)
     sections = [
@@ -57,7 +63,7 @@ def _peg(piece: PieceSpec, joint: Joint, mm: float, tolerance: float) -> Brep:
     return _loft(piece, joint, sections, mm, tolerance)
 
 
-def _hole(piece: PieceSpec, joint: Joint, mm: float, tolerance: float) -> Brep:
+def _hole(piece: PieceSpec, joint: Joint, mm: float, tolerance: float) -> Brep | None:
     sections = [(joint.profile, _OVERLAP_MM), (joint.profile, -joint.depth)]
     return _loft(piece, joint, sections, mm, tolerance)
 
@@ -68,13 +74,14 @@ def _loft(
     sections: list[tuple[PegProfile, float]],
     mm: float,
     tolerance: float,
-) -> Brep:
-    """Closed straight loft through cross-sections at distances z (mm) past the joint midpoint."""
+) -> Brep | None:
+    """Closed straight loft through cross-sections at distances z (mm) past the joint midpoint,
+    or None if Rhino can't loft or cap it."""
     curves = [_section(piece, joint, profile, z, mm) for profile, z in sections]
     loft = Brep.CreateFromLoft(curves, Point3d.Unset, Point3d.Unset, LoftType.Straight, False)
-    solid = loft[0].CapPlanarHoles(tolerance)
-    if solid.SolidOrientation == BrepSolidOrientation.Inward:  # booleans need outward normals
-        solid.Flip()
+    solid = loft[0].CapPlanarHoles(tolerance) if loft else None
+    if solid is not None and solid.SolidOrientation == BrepSolidOrientation.Inward:
+        solid.Flip()  # booleans need outward normals
     return solid
 
 

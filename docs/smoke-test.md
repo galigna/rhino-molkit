@@ -76,6 +76,8 @@ Start each run in a new document with units set to **millimetres**.
       perpendicular to the molecule's plane).
 - [ ] `benzene`: ring joints have two flats; C–H joints are round.
 - [ ] `acetylene`: the C≡C peg is visibly thicker than the C–H pegs.
+- [ ] In a **Meters** and a **Centimeters** document: `benzene` → `MolkitPuzzle` builds all 12
+      pieces (the geometry tolerance must not come from the document).
 - [ ] `MolkitSettings` → `Scale=30` on the puzzle: only pieces are rebuilt (bigger); no
       ball-and-stick model comes back.
 - [ ] `MolkitSettings` → `StickRadius=2.5` → Enter: prints a "wall … < 1.0" issue for each C

@@ -40,7 +40,7 @@ def replace_pieces(
     mm = mm_per_unit(doc)
     failed = []
     for spec in specs:
-        brep = pieces.piece_brep(spec, mm, doc.ModelAbsoluteTolerance)
+        brep = pieces.piece_brep(spec, mm)
         if brep is None:
             failed.append(spec.atom_index)
             continue
