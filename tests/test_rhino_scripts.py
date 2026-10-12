@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import re
 from pathlib import Path
 
@@ -28,3 +29,11 @@ def test_script_requirements_match_pyproject_pins(script: Path) -> None:
     }
     assert requirements
     assert requirements <= PINS
+
+
+def test_plugin_project_library_path_is_relative() -> None:
+    # Script Editor resolves "../src/molkit/" against the project file but saves it back as an
+    # absolute file:/// path into the builder's own folder. Restore the relative path before
+    # committing (docs/packaging.md).
+    project = json.loads((ROOT / "rhino" / "molkit.rhproj").read_text(encoding="utf-8-sig"))
+    assert [lib["library"]["base"] for lib in project["libraries"]] == ["../src/molkit/"]
