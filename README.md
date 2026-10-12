@@ -15,7 +15,7 @@ You type a molecule's name, for example `caffeine`, and molkit:
 No coding or 3D-design experience is needed. The steps below cover installation, a first
 puzzle, printing and assembly.
 
-> **This is an early version (0.1.1-beta).** The pieces have not been test-printed yet, so the
+> **This is an early version (0.1.2-beta).** The pieces have not been test-printed yet, so the
 > pegs may come out a little too tight or too loose on your printer.
 > [Changing the fit](#the-pegs-are-too-tight-or-too-loose) takes one setting.
 
@@ -72,7 +72,7 @@ is plenty to make puzzles. Students and teachers can buy it at a large discount.
 
 1. Open the molkit download page: <https://github.com/galigna/rhino-molkit/releases>
 2. Under the newest version, open **Assets** and click the file whose name ends in **`.yak`**
-   (for example `molkit-0.1.1-beta+39182-rh8-any.yak`).
+   (for example `molkit-0.1.2-beta+287-rh8-any.yak`).
 3. Your browser saves it to your **Downloads** folder, where the install command looks for it.
 
 ### 2b. Install it with one command
