@@ -119,6 +119,7 @@ The test files are in `<repo>\tests\fixtures`.
 - [ ] Cancel the file dialog: nothing happens.
 
 ### Toolbar (installed build)
-- [ ] Rhino starts without a floating molkit window.
+- [ ] Rhino starts without a floating molkit window; the molkit buttons are docked at the top.
+- [ ] The docked position survives a second Rhino start.
 - [ ] Docked molkit toolbar order: Fetch, ImportCif | Info, Regenerate, Settings | Puzzle,
       ExportStl, with two separators.

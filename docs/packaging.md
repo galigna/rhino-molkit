@@ -41,9 +41,9 @@ git-ignored; release files go on GitHub, not in the repo.
 uv run python tools/fix_toolbar.py rhino/build/rh8/<the .yak file>
 ```
 
-- It **hides the toolbar by default.** Script Editor marks it visible and floating, and Rhino
-  reads plugin toolbars fresh on each start, so otherwise it pops up over the window every time
-  Rhino opens. Users dock it themselves or open it from Rhino's toolbar list.
+- It **docks the toolbar at the top.** Script Editor marks it floating, and Rhino reads plugin
+  toolbars fresh on each start, so otherwise it pops up over the template window every time
+  Rhino opens. Hiding it instead would leave beginners without buttons.
 - It **orders the buttons and adds separators** (Script Editor can't): get a molecule
   (Fetch, ImportCif) | look and change (Info, Regenerate, Settings) | puzzle (Puzzle,
   ExportStl). The order is `LAYOUT` at the top of the script; a new command not listed there

@@ -9,6 +9,10 @@ from pathlib import Path
 _tool = runpy.run_path(str(Path(__file__).parents[1] / "tools" / "fix_toolbar.py"))
 fix, patch_yak = _tool["fix"], _tool["patch_yak"]
 
+DOCKED = (
+    '<dock_bar_info visible="True" floating="False" docking="True" '
+    'dock_location_u="59419" dock_location="top" />'
+)
 COMMANDS = ["ExportStl", "Fetch", "ImportCif", "Info", "Puzzle", "Regenerate", "Settings"]
 
 
@@ -33,8 +37,13 @@ def _layout(rui: str) -> list[str]:
     return [t or "|" for t in tokens]
 
 
-def test_toolbar_is_hidden_by_default() -> None:
-    assert '<dock_bar_info visible="False"  floating="True" />' in fix(_rui(COMMANDS))
+def test_toolbar_is_shown_docked_at_the_top_not_floating() -> None:
+    assert fix(_rui(COMMANDS)).count(DOCKED) == 1
+
+
+def test_an_earlier_hidden_toolbar_is_docked_too() -> None:
+    hidden = _rui(COMMANDS).replace('visible="True"', 'visible="False"')
+    assert DOCKED in fix(hidden)
 
 
 def test_buttons_are_grouped_by_task() -> None:

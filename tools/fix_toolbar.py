@@ -1,8 +1,9 @@
 """Post-build fixes for the toolbar in the Script Editor's plugin package.
 
 - Script Editor writes the toolbar as `<dock_bar_info visible="True" floating="True" />`, and
-  Rhino reads plugin toolbars fresh on every start, so it pops up as a floating window each
-  time. This hides it (users dock it themselves or open it from the toolbar list).
+  Rhino reads plugin toolbars fresh on every start, so it pops up as a floating window over the
+  template dialog each time; hidden instead, beginners would never find it. So it is docked at
+  the top, visible, with the attributes of Rhino's own default top toolbar (from Rhino.UI.dll).
 - Script Editor orders the buttons like the project's command list and has no separators.
   This applies LAYOUT, using Rhino's own separator: `<tool_bar_item ... button_style="spacer" />`.
 
@@ -31,15 +32,20 @@ LAYOUT = [
     "MolkitExportStl",
 ]
 
-_VISIBLE = re.compile(r'(<dock_bar_info\s+visible=")True(")')
+_DOCK_INFO = re.compile(r"<dock_bar_info\b[^>]*/>")
+# 59419 is the id Rhino's own default toolbar file uses for its top dock bar.
+DOCKED = (
+    '<dock_bar_info visible="True" floating="False" docking="True" '
+    'dock_location_u="59419" dock_location="top" />'
+)
 _SPACER = re.compile(r'\s*<tool_bar_item\b[^>]*button_style="spacer"[^>]*/>')
 _ITEM = re.compile(r"<tool_bar_item\b.*?</tool_bar_item>", re.S)
 _NAME = re.compile(r"<locale_1033>(\w+)</locale_1033>")
 
 
 def fix(rui: str) -> str:
-    """The toolbar XML hidden by default, with buttons in LAYOUT order and separators."""
-    return _arrange(_VISIBLE.sub(r"\1False\2", rui))
+    """The toolbar XML docked at the top, with buttons in LAYOUT order and separators."""
+    return _arrange(_DOCK_INFO.sub(DOCKED, rui))
 
 
 def _arrange(rui: str) -> str:
@@ -78,7 +84,7 @@ def main(yak: Path) -> None:
     patch_yak(yak)
     for rui in yak.parent.glob("*.rui"):
         rui.write_text(fix(rui.read_text(encoding="utf-8-sig")), encoding="utf-8")
-    print(f"toolbar hidden by default and arranged in {yak.name}")
+    print(f"toolbar docked at the top and arranged in {yak.name}")
 
 
 if __name__ == "__main__":
