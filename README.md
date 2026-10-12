@@ -129,6 +129,8 @@ be typed.
 
 ![Dragging the molkit button window to the top of Rhino](docs/media/dock-toolbar.gif)
 
+[Full-quality video (MP4)](docs/media/dock-toolbar.mp4)
+
 The first example is **methane**, the simplest molecule: one carbon atom with four hydrogens.
 
 1. Type **`MolkitFetch`** and press **Enter**.
@@ -139,11 +141,15 @@ The first example is **methane**, the simplest molecule: one carbon atom with fo
 
    ![Typing MolkitFetch and methane builds the ball-and-stick model](docs/media/fetch-methane.gif)
 
+   [Full-quality video (MP4)](docs/media/fetch-methane.mp4)
+
 3. Type **`MolkitPuzzle`**, press **Enter**, then **click the model**.
    The ball-and-stick model turns into five puzzle pieces. (Want the ball-and-stick model back?
    Type **`MolkitRegenerate`** and click a piece.)
 
    ![MolkitPuzzle makes the pieces; MolkitRegenerate brings the model back](docs/media/puzzle-regenerate.gif)
+
+   [Full-quality video (MP4)](docs/media/puzzle-regenerate.mp4)
 
 ---
 
