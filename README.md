@@ -104,6 +104,12 @@ If an error appears instead, see [Troubleshooting](#troubleshooting).
 Start Rhino. Rhino first shows a window with **templates** (starting points for a new file).
 Choose **Small Objects - Millimeters**. molkit works in millimetres, like 3D printers do.
 
+Press the triangle button next to the Perspective view, and choose the Shaded version.
+Double click on the Perspective view to go fullscreen.
+
+<img width="505" height="351" alt="image" src="https://github.com/user-attachments/assets/1e02f1da-ac11-4150-86d6-8a8280edbdbd" />
+
+
 The **first** time you use a molkit command, it downloads some free chemistry tools it needs
 (about 40 MB). This takes a minute and happens only once. If it stops with a *timed out*
 message on a slow connection, run the same command again.
