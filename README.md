@@ -7,7 +7,7 @@ Type a compound name (fetched from PubChem) or open a crystal structure (CIF), a
 an accurate ball-and-stick model, splits it into printable pieces and exports one STL per piece
 with assembly instructions.
 
-> **Status: v0.1.0, early.** Every command works, but the peg and clearance sizes have not been
+> **Status: v0.1.1-beta, early.** Every command works, but the peg and clearance sizes have not been
 > test-printed yet ([docs/print-tests.md](docs/print-tests.md)). Expect to adjust `Clearance`
 > for your printer.
 
@@ -57,10 +57,9 @@ layer), not edited by hand. Changing a setting rebuilds the model and its pieces
 
 1. Download the `.yak` file from the
    [GitHub releases](https://github.com/galigna/rhino-molkit/releases).
-2. In a Windows terminal, install it with Rhino's package manager (use the file name you
-   downloaded):
-   ```
-   "C:\Program Files\Rhino 8\System\Yak.exe" install molkit-0.1.0-rh8-any.yak
+2. In PowerShell, install it with Rhino's package manager (use the file name you downloaded):
+   ```powershell
+   & "C:\Program Files\Rhino 8\System\Yak.exe" install .\molkit-0.1.1-beta+39182-rh8-any.yak
    ```
 3. Restart Rhino and type `MolkitFetch`.
 
