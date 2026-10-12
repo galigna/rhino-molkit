@@ -72,10 +72,16 @@ def info() -> None:
 
 
 def regenerate() -> None:
-    """MolkitRegenerate: rebuild a model's geometry from the data on its anchor."""
+    """MolkitRegenerate: rebuild the ball-and-stick model from the data on its anchor. Also the
+    way back from a puzzle, and a repair after parts were deleted by hand."""
     model = _pick_model("Select any part of the molkit model to regenerate")
-    if model is not None:
-        _redraw(model)
+    if model is None:
+        return
+    doc = Rhino.RhinoDoc.ActiveDoc
+    draw.clear(doc, model)
+    draw.add_ballstick(doc, model)
+    doc.Views.Redraw()
+    print(f"Molkit: rebuilt {model.molecule.name} as a ball-and-stick model")
 
 
 def settings() -> None:
@@ -116,28 +122,32 @@ def export_stl() -> None:
 
 
 def _redraw(model: PuzzleModel) -> None:
+    """Rebuild a model with new settings: a puzzle stays a puzzle. If the pieces can't be built,
+    show the ball-and-stick model so the molecule doesn't vanish."""
     doc = Rhino.RhinoDoc.ActiveDoc
-    had_pieces = draw.redraw(doc, model)
+    was_puzzle = draw.clear(doc, model)
+    if not (was_puzzle and _build_pieces(model)):
+        draw.add_ballstick(doc, model)
     doc.Views.Redraw()
     print(f"Molkit: regenerated {model.molecule.name}")
-    if had_pieces:
-        _build_pieces(model)
 
 
-def _build_pieces(model: PuzzleModel) -> None:
+def _build_pieces(model: PuzzleModel) -> bool:
+    """Replace the model with its puzzle pieces; False (nothing changed) if they'd misprint."""
     specs = build_pieces(model.molecule, model.params)
     issues = check(specs, model.params)
     for issue in issues:
         print(f"Molkit: {issue.message}")
     if issues:
         print("Molkit: no pieces built; adjust the parameters with MolkitSettings")
-        return
+        return False
     doc = Rhino.RhinoDoc.ActiveDoc
     failed = draw.replace_pieces(doc, model, specs)
     doc.Views.Redraw()
     print(f"Molkit: built {len(specs) - len(failed)} of {len(specs)} pieces")
     if failed:
         print(f"Molkit: Rhino's booleans failed for atoms {failed}")
+    return True
 
 
 def _ask_params(params: Params) -> Params | None:

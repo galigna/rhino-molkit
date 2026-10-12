@@ -18,16 +18,15 @@ _DATA_LAYER_COLOR = (128, 128, 128)
 
 def add_model(doc: Rhino.RhinoDoc, model: PuzzleModel) -> None:
     """Draw a new model and add the anchor that stores it."""
-    _add_ballstick(doc, model)
+    add_ballstick(doc, model)
     data_layer = _layer(doc, f"{_root(model)}::_data", _DATA_LAYER_COLOR, locked=True)
     storage.add_anchor(doc, model, data_layer)
 
 
-def redraw(doc: Rhino.RhinoDoc, model: PuzzleModel) -> bool:
-    """Replace a model's ball-and-stick geometry and save `model` on its anchor. Removes any
-    pieces too; returns True if there were some, so the caller can rebuild them."""
+def clear(doc: Rhino.RhinoDoc, model: PuzzleModel) -> bool:
+    """Delete a model's geometry and save `model` (e.g. new params) on its anchor. Returns True
+    if it was a puzzle, so the caller rebuilds pieces rather than the ball-and-stick model."""
     deleted = storage.delete_generated(doc, model.model_id)
-    _add_ballstick(doc, model)
     storage.update_anchor(doc, model)
     return "piece" in deleted
 
@@ -35,12 +34,13 @@ def redraw(doc: Rhino.RhinoDoc, model: PuzzleModel) -> bool:
 def replace_pieces(
     doc: Rhino.RhinoDoc, model: PuzzleModel, specs: tuple[PieceSpec, ...]
 ) -> list[int]:
-    """Swap the model's pieces for new ones. Returns atoms whose solids Rhino couldn't build."""
-    storage.delete_generated(doc, model.model_id, roles={"piece"})
+    """Replace the model's geometry (ball-and-stick or old pieces) with new pieces.
+    Returns atoms whose solids Rhino couldn't build."""
+    storage.delete_generated(doc, model.model_id)
     mm = mm_per_unit(doc)
     failed = []
     for spec in specs:
-        brep = pieces.piece_brep(spec, mm, doc.ModelAbsoluteTolerance)
+        brep = pieces.piece_brep(spec, mm)
         if brep is None:
             failed.append(spec.atom_index)
             continue
@@ -49,7 +49,8 @@ def replace_pieces(
     return failed
 
 
-def _add_ballstick(doc: Rhino.RhinoDoc, model: PuzzleModel) -> None:
+def add_ballstick(doc: Rhino.RhinoDoc, model: PuzzleModel) -> None:
+    """Draw the model as balls and half-sticks."""
     mm = mm_per_unit(doc)
     parent = f"{_root(model)}::BallStick"
     spec = build(model.molecule, model.params)

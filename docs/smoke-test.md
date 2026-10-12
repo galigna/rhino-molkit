@@ -66,8 +66,8 @@ Start each run in a new document with units set to **millimetres**.
 - [ ] Save, close and reopen the file; `MolkitRegenerate` still works (data lives on the anchor).
 
 ### MolkitPuzzle
-- [ ] `MolkitFetch methane`, then `MolkitPuzzle` → click it: prints `built 5 of 5 pieces`; layers
-      `Molkit::methane::Pieces::C` and `…::H`. Turn off `…::BallStick` to see them clearly.
+- [ ] `MolkitFetch methane`, then `MolkitPuzzle` → click it: prints `built 5 of 5 pieces`; the
+      ball-and-stick model is replaced by pieces on `Molkit::methane::Pieces::C` and `…::H`.
 - [ ] The C piece has four round holes; each H piece has a round peg with a chamfered tip.
 - [ ] Each piece is one closed solid: `What` says "closed solid polysurface".
 - [ ] Pegs sit inside the matching holes with a visible gap (0.2 mm): use `Section` or
@@ -76,10 +76,17 @@ Start each run in a new document with units set to **millimetres**.
       perpendicular to the molecule's plane).
 - [ ] `benzene`: ring joints have two flats; C–H joints are round.
 - [ ] `acetylene`: the C≡C peg is visibly thicker than the C–H pegs.
+- [ ] In a **Meters** and a **Centimeters** document: `benzene` → `MolkitPuzzle` builds all 12
+      pieces (the geometry tolerance must not come from the document).
+- [ ] `MolkitSettings` → `Scale=30` on the puzzle: only pieces are rebuilt (bigger); no
+      ball-and-stick model comes back.
 - [ ] `MolkitSettings` → `StickRadius=2.5` → Enter: prints a "wall … < 1.0" issue for each C
-      hole and "no pieces built"; the old pieces are removed.
-- [ ] `MolkitSettings` back to `StickRadius=3.5`: the pieces are rebuilt automatically.
-- [ ] `IncludeHydrogens=No` with pieces present: methane becomes a single plain C ball piece.
+      hole and "no pieces built"; the ball-and-stick model is shown instead.
+- [ ] `MolkitPuzzle` on that model again: still "no pieces built", and the ball-and-stick model
+      stays (nothing is deleted when the check fails).
+- [ ] `MolkitSettings` back to `StickRadius=3.5`, then `MolkitPuzzle`: pieces replace the model.
+- [ ] `IncludeHydrogens=No` on the puzzle: methane becomes a single plain C ball piece.
+- [ ] `MolkitRegenerate` on the puzzle turns it back into the ball-and-stick model.
 
 ### MolkitExportStl
 - [ ] On methane with pieces: `MolkitExportStl` → click it → pick an empty folder: prints
@@ -112,3 +119,12 @@ The test files are in `<repo>\tests\fixtures`.
 - [ ] `carbon_chain.cif`: prints "… has no discrete molecule (a polymer or framework?)";
       nothing is drawn.
 - [ ] Cancel the file dialog: nothing happens.
+
+### Toolbar (installed build)
+Toolbar defaults only apply where Rhino has never seen molkit's toolbar file; to test them on a
+machine that has, reset its saved state as described in packaging.md.
+- [ ] First start: a small floating molkit window with the buttons appears.
+- [ ] Close it, restart Rhino: it stays closed. Or drag it to an edge to dock it, restart: it
+      stays docked.
+- [ ] Docked molkit toolbar order: Fetch, ImportCif | Info, Regenerate, Settings | Puzzle,
+      ExportStl, with two separators.

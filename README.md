@@ -12,8 +12,8 @@ You type a molecule's name, for example `caffeine`, and molkit:
 3. cuts it into puzzle pieces, one per atom,
 4. saves every piece as a file you can send to a 3D printer.
 
-You don't need to know how to code or how to use design software. This page walks you through
-everything, step by step.
+No coding or 3D-design experience is needed. The steps below cover installation, a first
+puzzle, printing and assembly.
 
 > **This is an early version (0.1.1-beta).** The pieces have not been test-printed yet, so the
 > pegs may come out a little too tight or too loose on your printer.
@@ -30,7 +30,7 @@ everything, step by step.
 5. [Step 4: Print and assemble](#step-4-print-and-assemble)
 6. [More things you can do](#more-things-you-can-do)
 7. [All commands](#all-commands)
-8. [Something went wrong](#something-went-wrong)
+8. [Troubleshooting](#troubleshooting)
 
 ---
 
@@ -47,8 +47,8 @@ everything, step by step.
 
 [Rhino](https://www.rhino3d.com/) (full name *Rhinoceros*) is a program for designing 3D
 objects. Designers, architects and jewellers use it. molkit is a **plugin**: an add-on that gives
-Rhino new abilities, in this case building molecule puzzles. You won't need to learn Rhino itself;
-molkit does the design work for you, and this guide tells you exactly what to type.
+Rhino new abilities, in this case building molecule puzzles. molkit does the design work; this
+guide lists the commands to type.
 
 Rhino is paid software, but you can **try it free for 90 days** with every feature working, which
 is plenty to make puzzles. Students and teachers can buy it at a large discount.
@@ -73,18 +73,17 @@ is plenty to make puzzles. Students and teachers can buy it at a large discount.
 1. Open the molkit download page: <https://github.com/galigna/rhino-molkit/releases>
 2. Under the newest version, open **Assets** and click the file whose name ends in **`.yak`**
    (for example `molkit-0.1.1-beta+39182-rh8-any.yak`).
-3. Your browser saves it to your **Downloads** folder. Leave it there.
+3. Your browser saves it to your **Downloads** folder, where the install command looks for it.
 
 ### 2b. Install it with one command
 
-Rhino installs plugins with a small helper program. You start it by pasting **one line** into
-**PowerShell**, a window where you can type commands to Windows. Don't worry, you only need to
-copy and paste.
+Rhino installs plugins with a small helper program, started by pasting **one line** into
+**PowerShell**, a window for typing commands to Windows.
 
 1. Make sure **Rhino is closed**.
 2. Click the Windows **Start** button, type **`PowerShell`**, and click **Windows PowerShell**.
    A dark blue or black window opens.
-3. Copy this whole line (use the copy button in the corner of the box, if you see one):
+3. Copy this whole line (or use the copy button in the corner of the box):
 
    ```powershell
    & "C:\Program Files\Rhino 8\System\Yak.exe" install (Get-ChildItem "$env:USERPROFILE\Downloads\molkit-*.yak" | Sort-Object LastWriteTime | Select-Object -Last 1).FullName
@@ -98,7 +97,7 @@ copy and paste.
 5. After a few seconds you should see a message that molkit was installed. You can close the
    PowerShell window.
 
-If you see an error instead, check [Something went wrong](#something-went-wrong).
+If an error appears instead, see [Troubleshooting](#troubleshooting).
 
 ### 2c. Open Rhino
 
@@ -106,17 +105,23 @@ Start Rhino. Rhino first shows a window with **templates** (starting points for 
 Choose **Small Objects - Millimeters**. molkit works in millimetres, like 3D printers do.
 
 The **first** time you use a molkit command, it downloads some free chemistry tools it needs
-(about 40 MB). This takes a minute, and it happens only once. If your internet is slow and it
-stops with a *timed out* message, simply run the same command again.
+(about 40 MB). This takes a minute and happens only once. If it stops with a *timed out*
+message on a slow connection, run the same command again.
 
 ---
 
 ## Step 3: Make your first puzzle
 
-You give Rhino instructions by typing **commands**. At the top of the Rhino window there is a line
-that says **`Command:`**. Just start typing; your text appears there. Press **Enter** to run it.
+Rhino is controlled by typing **commands**. At the top of the Rhino window is a line that says
+**`Command:`**. Typed text appears there, and **Enter** runs the command.
 
-Let's build **methane**, the simplest molecule: one carbon atom with four hydrogens.
+**The molkit buttons.** The first time you open Rhino after installing molkit, a small window
+with molkit's buttons appears. Drag it by its title to the top of the Rhino window, next to the
+other buttons, and it stays there from then on. Each button does the same as typing the command
+(hold the mouse over a button to see its name). If the window is closed, the commands can still
+be typed.
+
+The first example is **methane**, the simplest molecule: one carbon atom with four hydrogens.
 
 1. Type **`MolkitFetch`** and press **Enter**.
 2. When it asks for a name, type **`methane`** and press **Enter**.
@@ -124,10 +129,8 @@ Let's build **methane**, the simplest molecule: one carbon atom with four hydrog
    - **drag with the right mouse button** in the view labelled *Perspective* to turn the model,
    - **scroll the mouse wheel** to zoom.
 3. Type **`MolkitPuzzle`**, press **Enter**, then **click the model**.
-   molkit builds the five puzzle pieces right on top of the model.
-4. To see only the pieces, hide the model: in the **Layers** panel (at the side of the Rhino
-   window; if you can't find it, type **`Layer`** and press **Enter**), open the
-   **Molkit → methane** folder and click the **light bulb** next to **BallStick**.
+   The ball-and-stick model turns into five puzzle pieces. (Want the ball-and-stick model back?
+   Type **`MolkitRegenerate`** and click a piece.)
 
 ---
 
@@ -151,7 +154,7 @@ methane_manifest.json
 
 The letters at the end tell you which atom each piece is (**C** = carbon, **H** = hydrogen,
 **O** = oxygen, **N** = nitrogen, and so on). `methane_manifest.json` is a text list of which piece
-connects to which; you can open it with Notepad if you get stuck.
+connects to which, useful during assembly; Notepad opens it.
 
 ### Print
 
@@ -180,8 +183,7 @@ Hydrogen pieces always have pegs; heavier atoms, like carbon, have the holes.
 ### Build other molecules
 
 Use `MolkitFetch` with any molecule's **English name**, for example `water`, `ethanol`,
-`caffeine`, `aspirin` or `glucose`. Start small: every atom is one piece, and caffeine already
-has 24 pieces.
+`caffeine`, `aspirin` or `glucose`. Every atom is one piece: methane has 5 pieces, caffeine 24.
 
 Very large molecules (more than about 50 atoms besides hydrogens) still work. PubChem has no 3D
 shape for them, so molkit calculates one, which takes a few seconds.
@@ -216,22 +218,22 @@ the crystal and builds it like any other.
 |---|---|
 | `MolkitFetch` | Builds a molecule from its name. |
 | `MolkitImportCif` | Builds a molecule from a crystal structure file (`.cif`). |
-| `MolkitPuzzle` | Cuts a molecule into puzzle pieces. |
+| `MolkitPuzzle` | Turns the ball-and-stick model into puzzle pieces. |
 | `MolkitExportStl` | Saves the pieces as files for 3D printing. |
 | `MolkitSettings` | Changes sizes, the peg fit, hydrogens on or off, or switches between the FDM and Resin presets. |
 | `MolkitInfo` | Shows facts about a molecule: its formula, its bonds and the current settings. Press **F2** to see the full text. |
-| `MolkitRegenerate` | Rebuilds a molecule, for example after you deleted parts of it by accident. |
+| `MolkitRegenerate` | Turns puzzle pieces back into the ball-and-stick model, or repairs a model after you deleted parts of it by accident. |
 
 ---
 
-## Something went wrong
+## Troubleshooting
 
 ### PowerShell shows an error when installing
 
 - An error that mentions a missing file or argument: the `.yak` file is not in your **Downloads**
   folder, or its name doesn't start with `molkit-`. Move or rename it, then paste the line again.
 - *"…Yak.exe…is not recognized…"*: Rhino 8 is not installed in the usual place. Check that Step 1
-  finished, or ask someone to point the command to Rhino's folder.
+  finished, or replace `C:\Program Files\Rhino 8` in the command with Rhino's actual folder.
 
 ### Rhino says "Unknown command: MolkitFetch"
 
@@ -268,9 +270,8 @@ little to fit. This is a known limitation of this early version.
 
 ### Still stuck?
 
-[Open an issue](https://github.com/galigna/rhino-molkit/issues) on GitHub, describe what you did,
-and copy the message Rhino showed. Ask the person who shared molkit with you if you're not sure
-how.
+[Open an issue](https://github.com/galigna/rhino-molkit/issues) on GitHub with the steps taken and
+the message Rhino showed.
 
 ---
 

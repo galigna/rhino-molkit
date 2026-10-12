@@ -35,15 +35,29 @@ In the Script Editor: **Publish → Build Project** (target Rhino 8). The output
 `<repo>\rhino\build\rh8\`: a `.rhp`, a `.yak` and the package's `manifest.yml`. `build/` is
 git-ignored; release files go on GitHub, not in the repo.
 
-**Then, after every build**, hide the toolbar by default. Script Editor marks it visible and
-floating, and Rhino reads plugin toolbars fresh on each start, so otherwise the molkit toolbar
-pops up over the window every time Rhino opens:
+**Then, after every build**, fix the toolbar:
 
 ```bash
-uv run python tools/hide_toolbar.py rhino/build/rh8/<the .yak file>
+uv run python tools/fix_toolbar.py rhino/build/rh8/<the .yak file>
 ```
 
-Users dock the toolbar themselves or open it from Rhino's toolbar list.
+- It **keeps the toolbar visible and floating** (Script Editor's default), so on first use a
+  small molkit window shows the buttons. Rhino saves toolbar state in
+  `%APPDATA%\McNeel\Rhinoceros\8.0\settings\Scheme__Default\containers.xml`, so once the
+  window is closed or docked it stays that way. (Hidden by default, nobody finds the buttons;
+  a minimal "docked at the top" entry made Rhino 8 show nothing.)
+- Because of that saved state, **toolbar changes only show on a machine that hasn't run molkit
+  before.** Rhino applies a plugin's toolbar defaults only when its `.rui` file is new to it.
+  To test toolbar changes, close Rhino, back up `containers.xml`, and remove **every** line or
+  block that mentions molkit's GUID (`9e5499a0-8263-44b2-82a5-d1bc6735a3f8`):
+  - the `<file_name …>molkit.rui</file_name>` registration. Keep this one and Rhino treats the
+    toolbar as known and closed, and shows nothing;
+  - the `<dock_bar guid="9e5499a0-…">` block and any `<removed_item Item1="9e5499a0-…" />`;
+  - also delete `molkit_9e5499a0-….xml` in the same folder (Rhino's saved copy of the buttons).
+- It **orders the buttons and adds separators** (Script Editor can't): get a molecule
+  (Fetch, ImportCif) | look and change (Info, Regenerate, Settings) | puzzle (Puzzle,
+  ExportStl). The order is `LAYOUT` at the top of the script; a new command not listed there
+  goes at the end.
 
 ## 3. Test the built plugin, not the checkout
 
