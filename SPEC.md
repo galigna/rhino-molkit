@@ -161,9 +161,9 @@ everything with that `model_id` except the anchor, then rebuilds.
 |---|---|
 | `MolkitFetch` | Asks for a compound name (option: `Kekulize`), fetches the PubChem 3D SDF, and builds the ball-and-stick model plus its anchor. |
 | `MolkitImportCif` | Picks a `.cif` file, extracts one molecule, and builds the ball-and-stick model plus its anchor. |
-| `MolkitPuzzle` | Picks a model's anchor or any object in the model, then builds the puzzle pieces on `Molkit::<name>::Pieces`. If `puzzle.check` reports issues, they are printed and no pieces are built. |
+| `MolkitPuzzle` | Picks a model's anchor or any object in the model, then replaces the model's geometry with puzzle pieces on `Molkit::<name>::Pieces` (the ball-and-stick model is deleted; `MolkitRegenerate` can rebuild it from the anchor). If `puzzle.check` reports issues, they are printed and nothing is changed. `MolkitSettings` keeps a puzzle a puzzle, falling back to ball-and-stick if the new settings can't make printable pieces. |
 | `MolkitSettings` | Picks a model and edits its parameters with command-line options generated from the `Params` fields (number options limited to 0.001–1000), plus `FDM`/`Resin` options that apply a preset but keep the hydrogen choice. Enter saves to the anchor and regenerates. |
-| `MolkitRegenerate` | Picks a model and rebuilds all of its geometry from the anchor data. |
+| `MolkitRegenerate` | Picks a model and rebuilds it as ball-and-stick from the anchor data: the way back from a puzzle, and a repair after parts were deleted. |
 | `MolkitExportStl` | Picks a model and a folder. Writes `<name>_<idx:03>_<El>.stl` for each piece and `<name>_manifest.json`. |
 | `MolkitInfo` | Picks a model and prints the formula, atom and bond counts, source, and parameters. |
 

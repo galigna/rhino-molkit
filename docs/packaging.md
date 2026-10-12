@@ -35,15 +35,19 @@ In the Script Editor: **Publish → Build Project** (target Rhino 8). The output
 `<repo>\rhino\build\rh8\`: a `.rhp`, a `.yak` and the package's `manifest.yml`. `build/` is
 git-ignored; release files go on GitHub, not in the repo.
 
-**Then, after every build**, hide the toolbar by default. Script Editor marks it visible and
-floating, and Rhino reads plugin toolbars fresh on each start, so otherwise the molkit toolbar
-pops up over the window every time Rhino opens:
+**Then, after every build**, fix the toolbar:
 
 ```bash
-uv run python tools/hide_toolbar.py rhino/build/rh8/<the .yak file>
+uv run python tools/fix_toolbar.py rhino/build/rh8/<the .yak file>
 ```
 
-Users dock the toolbar themselves or open it from Rhino's toolbar list.
+- It **hides the toolbar by default.** Script Editor marks it visible and floating, and Rhino
+  reads plugin toolbars fresh on each start, so otherwise it pops up over the window every time
+  Rhino opens. Users dock it themselves or open it from Rhino's toolbar list.
+- It **orders the buttons and adds separators** (Script Editor can't): get a molecule
+  (Fetch, ImportCif) | look and change (Info, Regenerate, Settings) | puzzle (Puzzle,
+  ExportStl). The order is `LAYOUT` at the top of the script; a new command not listed there
+  goes at the end.
 
 ## 3. Test the built plugin, not the checkout
 

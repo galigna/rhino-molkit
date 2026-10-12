@@ -124,10 +124,8 @@ Let's build **methane**, the simplest molecule: one carbon atom with four hydrog
    - **drag with the right mouse button** in the view labelled *Perspective* to turn the model,
    - **scroll the mouse wheel** to zoom.
 3. Type **`MolkitPuzzle`**, press **Enter**, then **click the model**.
-   molkit builds the five puzzle pieces right on top of the model.
-4. To see only the pieces, hide the model: in the **Layers** panel (at the side of the Rhino
-   window; if you can't find it, type **`Layer`** and press **Enter**), open the
-   **Molkit → methane** folder and click the **light bulb** next to **BallStick**.
+   The ball-and-stick model turns into five puzzle pieces. (Want the ball-and-stick model back?
+   Type **`MolkitRegenerate`** and click a piece.)
 
 ---
 
@@ -216,11 +214,11 @@ the crystal and builds it like any other.
 |---|---|
 | `MolkitFetch` | Builds a molecule from its name. |
 | `MolkitImportCif` | Builds a molecule from a crystal structure file (`.cif`). |
-| `MolkitPuzzle` | Cuts a molecule into puzzle pieces. |
+| `MolkitPuzzle` | Turns the ball-and-stick model into puzzle pieces. |
 | `MolkitExportStl` | Saves the pieces as files for 3D printing. |
 | `MolkitSettings` | Changes sizes, the peg fit, hydrogens on or off, or switches between the FDM and Resin presets. |
 | `MolkitInfo` | Shows facts about a molecule: its formula, its bonds and the current settings. Press **F2** to see the full text. |
-| `MolkitRegenerate` | Rebuilds a molecule, for example after you deleted parts of it by accident. |
+| `MolkitRegenerate` | Turns puzzle pieces back into the ball-and-stick model, or repairs a model after you deleted parts of it by accident. |
 
 ---
 
