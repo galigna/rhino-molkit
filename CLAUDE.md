@@ -66,7 +66,9 @@ uv run pytest --cov=molkit.core
   meets its definition of done.
 - **Commit after each milestone** (and at sensible points within one) using Conventional Commits,
   e.g. `feat(core): add bond gender rule (M8)`. Never commit with failing checks.
-- Keep the README current with every user-visible change.
+- Keep the README current with every user-visible change. Its readers have never used Rhino,
+  CAD software or code: plain words, numbered steps, copy-paste commands with what they do.
+  Developer material (architecture, tests, packaging) goes in `docs/development.md`.
 - Prove each slice on **methane** first (the reference molecule). Bring in other molecules only to
   cover features methane can't, such as other bond orders and rings.
 - Don't add dependencies, files, or features outside the current milestone without asking.
