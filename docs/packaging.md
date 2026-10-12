@@ -9,7 +9,7 @@ differ slightly in other versions.
 
 1. Rhino 8 → `ScriptEditor` → **File → New Project…** → save it as `<repo>\rhino\molkit.rhproj`.
 2. **Project settings:**
-   - Name `molkit`, version `0.1.1-beta` (keep it equal to `version` in `pyproject.toml`).
+   - Name `molkit`, version e.g. `0.1.2-beta` (keep it equal to `version` in `pyproject.toml`).
      Script Editor rejected `0.1.0`; it accepts `major.minor.patch-suffix` and appends a
      `+build` number to the package version.
    - Author, copyright, description: "Turns molecules into 3D-printable puzzles"
@@ -75,7 +75,8 @@ uv run python tools/fix_toolbar.py rhino/build/rh8/<the .yak file>
 
 ## 4. Release
 
-1. Merge the release PR, then tag `main`: `git tag v0.1.1-beta && git push origin v0.1.1-beta`.
+1. Merge the release PR, then tag `main` with the version, e.g.
+   `git tag -a v0.1.2-beta -m "molkit v0.1.2-beta" && git push origin v0.1.2-beta`.
 2. Create a GitHub release for the tag and attach the `.yak` file.
 3. Optional: publish to the public Yak server with `Yak.exe login` and `Yak.exe push <file>.yak`.
    This is public and can't be fully undone, so do it only when the print sizes are confirmed.
