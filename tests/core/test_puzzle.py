@@ -110,6 +110,7 @@ def test_profile_follows_bond_order(name: str, kind: ProfileKind, peg_radius: fl
     assert peg.profile.radius == pytest.approx(peg_radius)
     assert hole.profile.radius == pytest.approx(peg_radius + 0.2)  # clearance
     assert hole.profile.flat_depth == peg.profile.flat_depth == 0.6
+    assert (hole.profile.rib_height, peg.profile.rib_height) == (0.3, 0.0)  # ribs only in holes
 
 
 def test_benzene_ring_bonds_are_aromatic() -> None:
@@ -193,7 +194,7 @@ def _xs(profile: PegProfile) -> list[float]:
 
 def test_round_outline_is_a_circle() -> None:
     points = outline(PegProfile(ProfileKind.ROUND, 2.0, 0.6))
-    assert len(points) == 64
+    assert len(points) == 128
     assert all(math.hypot(x, y) == pytest.approx(2.0) for x, y in points)
 
 
@@ -211,3 +212,33 @@ def test_double_flat_outline_is_cut_on_both_sides() -> None:
 def test_outline_points_stay_inside_the_circle() -> None:
     points = outline(PegProfile(ProfileKind.DOUBLE_FLAT, 2.0, 0.6))
     assert all(math.hypot(x, y) <= 2.0 + 1e-9 for x, y in points)
+
+
+def _ribbed(kind: ProfileKind) -> tuple[tuple[float, float], ...]:
+    return outline(PegProfile(kind, 1.95, 0.6, rib_height=0.3))
+
+
+def test_round_hole_has_three_ribs_reaching_in_by_the_rib_height() -> None:
+    radii = [math.hypot(x, y) for x, y in _ribbed(ProfileKind.ROUND)]
+    on_rib = [r < 1.95 - 1e-9 for r in radii]
+    starts = sum(1 for k in range(len(on_rib)) if on_rib[k] and not on_rib[k - 1])
+    assert starts == 3
+    assert min(radii) == pytest.approx(1.65)
+    assert radii[32] == pytest.approx(1.65)  # +y, 90° from the key_ref
+    assert radii[0] == pytest.approx(1.95)
+
+
+def test_each_rib_is_about_rib_width_wide() -> None:
+    points = _ribbed(ProfileKind.ROUND)
+    rib = [(x, y) for x, y in points if y > 1.0 and math.hypot(x, y) < 1.95 - 1e-9]
+    xs = [x for x, _ in rib]
+    assert max(xs) - min(xs) == pytest.approx(0.7, abs=0.15)  # 0.8 mm at the hole wall
+
+
+@pytest.mark.parametrize("kind", [ProfileKind.D_FLAT, ProfileKind.DOUBLE_FLAT])
+def test_ribs_on_flats_still_reach_in(kind: ProfileKind) -> None:
+    plain = outline(PegProfile(kind, 1.95, 0.6))
+    ribbed = _ribbed(kind)
+    insets = [math.hypot(*p) - math.hypot(*q) for p, q in zip(plain, ribbed)]
+    assert max(insets) == pytest.approx(0.3)
+    assert min(insets) == pytest.approx(0.0)

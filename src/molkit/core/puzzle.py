@@ -41,6 +41,11 @@ _PROFILE_KINDS = {
 # Below this sine, a neighbour is treated as collinear with the bond.
 _MIN_SINE = 0.1
 
+# Crush ribs: three, 120° apart so they centre the peg; measured from the key_ref, so they sit
+# in the same place on every hole. On a flat they push in from the flat.
+_RIB_ANGLES = tuple(math.radians(a) for a in (90.0, 210.0, 330.0))
+_RIB_WIDTH_MM = 0.8  # at the hole wall; two 0.4 mm extrusion lines
+
 
 @dataclass(frozen=True)
 class PegProfile:
@@ -49,6 +54,7 @@ class PegProfile:
     kind: ProfileKind
     radius: float
     flat_depth: float
+    rib_height: float = 0.0  # crush ribs reaching in from the wall; holes only
 
 
 @dataclass(frozen=True)
@@ -59,7 +65,7 @@ class Joint:
     key_ref: Vec3  # unit, perpendicular to direction: the flats' normal; same on both halves
     length: float  # piece centre -> bond midpoint, where the stub ends
     gender: Gender
-    profile: PegProfile  # holes are already enlarged by the clearance
+    profile: PegProfile  # holes are already enlarged by the clearance and carry the ribs
     depth: float  # peg length beyond the midpoint, or hole depth inward from it
     chamfer: float  # peg tip lead-in; 0 for holes
 
@@ -98,19 +104,36 @@ def check(pieces: tuple[PieceSpec, ...], params: Params) -> tuple[Issue, ...]:
     return tuple(itertools.chain(per_piece, _overlaps(pieces)))
 
 
-def outline(profile: PegProfile, segments: int = 64) -> tuple[tuple[float, float], ...]:
+def outline(profile: PegProfile, segments: int = 128) -> tuple[tuple[float, float], ...]:
     """Cross-section polygon in the joint plane, whose +x axis is the key_ref.
 
     Samples the circle and clamps x onto the flats: points past a flat land on its chord,
-    which gives the exact D or double-flat shape. 64 segments deviate < 0.003 mm at r = 2 mm.
+    which gives the exact D or double-flat shape. Points on a rib move in by the rib height.
+    128 segments deviate < 0.001 mm at r = 2 mm and put about 8 points on each rib.
     """
     flat_x = profile.radius - profile.flat_depth
     low, high = _FLAT_LIMITS[profile.kind](flat_x, profile.radius)
     angles = (2 * math.pi * k / segments for k in range(segments))
     return tuple(
-        (min(max(profile.radius * math.cos(a), low), high), profile.radius * math.sin(a))
+        _rib_inset(
+            profile,
+            a,
+            min(max(profile.radius * math.cos(a), low), high),
+            profile.radius * math.sin(a),
+        )
         for a in angles
     )
+
+
+def _rib_inset(profile: PegProfile, angle: float, x: float, y: float) -> tuple[float, float]:
+    half_width = _RIB_WIDTH_MM / 2 / profile.radius  # radians
+    on_rib = any(
+        abs((angle - rib + math.pi) % (2 * math.pi) - math.pi) <= half_width for rib in _RIB_ANGLES
+    )
+    if not on_rib:
+        return x, y
+    scale = 1 - profile.rib_height / math.hypot(x, y)
+    return x * scale, y * scale
 
 
 _FLAT_LIMITS = {
@@ -168,8 +191,8 @@ def _profile(order: BondOrder, is_peg: bool, params: Params) -> PegProfile:
     radius = params.triple_peg_radius_mm if order is BondOrder.TRIPLE else params.peg_radius_mm
     # The hole is the peg offset outward by the clearance; its flats move out by the same
     # amount, so the flat depth (measured from the radius) is unchanged.
-    clearance = 0.0 if is_peg else params.clearance_mm
-    return PegProfile(_PROFILE_KINDS[order], radius + clearance, params.flat_depth_mm)
+    clearance, ribs = (0.0, 0.0) if is_peg else (params.clearance_mm, params.rib_height_mm)
+    return PegProfile(_PROFILE_KINDS[order], radius + clearance, params.flat_depth_mm, ribs)
 
 
 def _key_ref(molecule: Molecule, bond: Bond) -> Vec3:

@@ -18,6 +18,7 @@ class Params:
     hole_extra_depth_mm: float  # room at the bottom of the hole so the peg seats fully
     clearance_mm: float  # radial gap between peg and hole
     chamfer_mm: float  # peg lead-in
+    rib_height_mm: float  # crush ribs inside each hole; they squash a little around the peg
     min_wall_mm: float
 
 
@@ -34,6 +35,7 @@ FDM = Params(
     hole_extra_depth_mm=0.4,
     clearance_mm=0.2,
     chamfer_mm=0.3,
+    rib_height_mm=0.3,  # ribs reach 0.1 mm into the peg: snug, and they hold when worn
     min_wall_mm=1.0,  # about 2.5 perimeters with a 0.4 mm nozzle
 )
 
@@ -49,6 +51,7 @@ RESIN = Params(
     hole_extra_depth_mm=0.3,
     clearance_mm=0.1,
     chamfer_mm=0.2,
+    rib_height_mm=0.15,
     min_wall_mm=0.6,
 )
 

@@ -123,7 +123,7 @@ Molecule(name: str, atoms: tuple[Atom, ...], bonds: tuple[Bond, ...], source: So
 
 Params(scale_mm_per_a, ball_radius_factor, stick_radius_mm, include_hydrogens, peg_radius_mm,
        triple_peg_radius_mm, flat_depth_mm, peg_length_mm, hole_extra_depth_mm, clearance_mm,
-       chamfer_mm, min_wall_mm)                     # FDM and RESIN are preset instances
+       chamfer_mm, rib_height_mm, min_wall_mm)                     # FDM and RESIN are preset instances
 
 BallSpec(atom_index, center: Vec3, radius, color_rgb, element)
 StickSpec(atom_index, bond_index, start: Vec3, end: Vec3, radius, color_rgb)   # half-bond
@@ -133,7 +133,7 @@ BallStickSpec(balls: tuple[BallSpec, ...], sticks: tuple[StickSpec, ...])
 
 class Gender(Enum): PEG, HOLE
 class ProfileKind(Enum): ROUND, D_FLAT, DOUBLE_FLAT
-PegProfile(kind, radius, flat_depth)                # flat_depth unused for ROUND
+PegProfile(kind, radius, flat_depth, rib_height=0) # flat_depth unused for ROUND; ribs: holes only
 Joint(bond_index, partner_index, direction: Vec3,   # unit vector, piece centre -> partner
       key_ref: Vec3,                                # unit, ⟂ direction; shared by both halves
       length,                                       # centre -> bond midpoint (stub end)
@@ -192,6 +192,10 @@ the element's CPK colour.
   bond** and used by both halves, so the peg and hole always line up.
 - **Hole size:** the hole's profile is the peg's profile offset outward by `clearance`. Hole depth
   is `peg_length + hole_extra_depth`, and the hole may extend into the ball.
+- **Crush ribs** (experiment, after the first water print loosened with use): every hole has
+  three 0.8 mm wide ribs along its full depth, 120° apart starting at 90° from the key
+  reference, reaching in by `rib_height`. They overlap the peg by `rib_height − clearance` and
+  squash a little, so the peg is held by pressure instead of surface roughness.
 - **Aromaticity:** by default, RDKit's aromaticity perception marks ring bonds as aromatic.
   The `Kekulize` import option turns them back into alternating single and double bonds. It is
   applied while reading the SDF, so it is not a stored parameter.
@@ -220,6 +224,7 @@ the element's CPK colour.
 | `hole_extra_depth_mm` | 0.4 | 0.3 |
 | `clearance_mm` (radial) | 0.20 | 0.10 |
 | `chamfer_mm` (peg lead-in) | 0.3 | 0.2 |
+| `rib_height_mm` (crush ribs in holes) | 0.3 | 0.15 |
 | `min_wall_mm` | 1.0 | 0.6 |
 | `include_hydrogens` | true | true |
 

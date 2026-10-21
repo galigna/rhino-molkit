@@ -69,6 +69,8 @@ Start each run in a new document with units set to **millimetres**.
 - [ ] `MolkitFetch methane`, then `MolkitPuzzle` → click it: prints `built 5 of 5 pieces`; the
       ball-and-stick model is replaced by pieces on `Molkit::methane::Pieces::C` and `…::H`.
 - [ ] The C piece has four round holes; each H piece has a round peg with a chamfered tip.
+- [ ] Each hole has three thin ribs along its length (look into it from the end, or `Section`
+      across a C–H bond): they overlap the peg by 0.1 mm.
 - [ ] Each piece is one closed solid: `What` says "closed solid polysurface".
 - [ ] Pegs sit inside the matching holes with a visible gap (0.2 mm): use `Section` or
       `ClippingPlane` through a C–H bond.

@@ -21,6 +21,7 @@ def test_fdm_preset_matches_spec_table() -> None:
         hole_extra_depth_mm=0.4,
         clearance_mm=0.2,
         chamfer_mm=0.3,
+        rib_height_mm=0.3,
         min_wall_mm=1.0,
     )
 
