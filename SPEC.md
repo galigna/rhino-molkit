@@ -123,7 +123,7 @@ Molecule(name: str, atoms: tuple[Atom, ...], bonds: tuple[Bond, ...], source: So
 
 Params(scale_mm_per_a, ball_radius_factor, stick_radius_mm, include_hydrogens, peg_radius_mm,
        triple_peg_radius_mm, flat_depth_mm, peg_length_mm, hole_extra_depth_mm, clearance_mm,
-       chamfer_mm, min_wall_mm)                     # FDM and RESIN are preset instances
+       chamfer_mm, ridge_height_mm, min_wall_mm)                     # FDM and RESIN are preset instances
 
 BallSpec(atom_index, center: Vec3, radius, color_rgb, element)
 StickSpec(atom_index, bond_index, start: Vec3, end: Vec3, radius, color_rgb)   # half-bond
@@ -138,7 +138,8 @@ Joint(bond_index, partner_index, direction: Vec3,   # unit vector, piece centre 
       key_ref: Vec3,                                # unit, ⟂ direction; shared by both halves
       length,                                       # centre -> bond midpoint (stub end)
       gender, profile,                              # hole profiles already include clearance
-      depth, chamfer)                               # peg length / hole depth; peg lead-in
+      depth, chamfer,                               # peg length / hole depth; peg lead-in
+      sections)                                     # ((profile, z mm past the midpoint), ...) to loft
 PieceSpec(atom_index, element, center, ball_radius, stick_radius, color_rgb, joints: tuple[Joint, ...])
 Issue(atom_index, message)                          # from puzzle.check(pieces, params)
 
@@ -192,6 +193,10 @@ the element's CPK colour.
   bond** and used by both halves, so the peg and hole always line up.
 - **Hole size:** the hole's profile is the peg's profile offset outward by `clearance`. Hole depth
   is `peg_length + hole_extra_depth`, and the hole may extend into the ball.
+- **Snap ridge** (experiment, after the first water print loosened with use): every peg has a
+  0.4 mm band, raised by `ridge_height`, centred 1.5 mm from its tip, with 45° ramps. The hole
+  has a groove of exactly the ridge's size at the same place. The ridge is wider than the hole
+  bore by `ridge_height − clearance`, so it clicks in and holds. The wall check uses the groove.
 - **Aromaticity:** by default, RDKit's aromaticity perception marks ring bonds as aromatic.
   The `Kekulize` import option turns them back into alternating single and double bonds. It is
   applied while reading the SDF, so it is not a stored parameter.
@@ -220,12 +225,13 @@ the element's CPK colour.
 | `hole_extra_depth_mm` | 0.4 | 0.3 |
 | `clearance_mm` (radial) | 0.20 | 0.10 |
 | `chamfer_mm` (peg lead-in) | 0.3 | 0.2 |
+| `ridge_height_mm` (snap ridge, radial) | 0.3 | 0.15 |
 | `min_wall_mm` | 1.0 | 0.6 |
 | `include_hydrogens` | true | true |
 
 Sanity check with FDM settings on a C–H bond: 21.8 mm between centres, C ball 8.5 mm, H ball 6.0 mm.
 The joint is 2.4 mm outside the C ball. The hole goes 5.4 mm deep, ending 5.5 mm from C's centre,
-which is inside the ball. Triple-bond wall: 3.5 − 2.3 = 1.2 mm ≥ 1.0. These defaults should be
+which is inside the ball. Triple-bond wall at the groove: 3.5 − 2.4 = 1.1 mm ≥ 1.0. These defaults should be
 **adjusted after the first test prints** (M9).
 
 ## 9. Error handling

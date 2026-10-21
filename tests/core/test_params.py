@@ -21,6 +21,7 @@ def test_fdm_preset_matches_spec_table() -> None:
         hole_extra_depth_mm=0.4,
         clearance_mm=0.2,
         chamfer_mm=0.3,
+        ridge_height_mm=0.3,
         min_wall_mm=1.0,
     )
 
@@ -33,7 +34,8 @@ def test_resin_is_smaller_and_tighter_than_fdm() -> None:
 # Guards against preset typos: the hole for the thickest peg must leave a printable wall.
 @pytest.mark.parametrize("preset", [FDM, RESIN], ids=["fdm", "resin"])
 def test_presets_leave_minimum_wall_around_thickest_peg(preset: Params) -> None:
-    hole_radius = preset.triple_peg_radius_mm + preset.clearance_mm
+    groove_radius = preset.triple_peg_radius_mm + preset.ridge_height_mm
+    hole_radius = max(preset.triple_peg_radius_mm + preset.clearance_mm, groove_radius)
     assert preset.stick_radius_mm - hole_radius >= preset.min_wall_mm
 
 

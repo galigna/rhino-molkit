@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from dataclasses import replace
-
 from Rhino.Geometry import (
     Brep,
     BrepSolidOrientation,
@@ -31,8 +29,8 @@ _TOLERANCE_MM = 0.01
 def piece_brep(piece: PieceSpec, mm: float) -> Brep | None:
     """The printable solid for one piece, or None if Rhino can't build it."""
     tolerance = _TOLERANCE_MM * mm
-    pegs = [_peg(piece, j, mm, tolerance) for j in piece.joints if j.gender is Gender.PEG]
-    holes = [_hole(piece, j, mm, tolerance) for j in piece.joints if j.gender is Gender.HOLE]
+    pegs = [_joint_solid(piece, j, mm, tolerance) for j in piece.joints if j.gender is Gender.PEG]
+    holes = [_joint_solid(piece, j, mm, tolerance) for j in piece.joints if j.gender is Gender.HOLE]
     if None in pegs or None in holes:
         return None
     solids = [Sphere(point(piece.center, mm), piece.ball_radius * mm).ToBrep()]
@@ -52,20 +50,10 @@ def _stub(piece: PieceSpec, joint: Joint, mm: float) -> Brep:
     return Cylinder(Circle(plane, piece.stick_radius * mm), joint.length * mm).ToBrep(True, True)
 
 
-def _peg(piece: PieceSpec, joint: Joint, mm: float, tolerance: float) -> Brep | None:
-    # Chamfer: the tip section is the profile shrunk by the chamfer (its flats move in too).
-    tip = replace(joint.profile, radius=joint.profile.radius - joint.chamfer)
-    sections = [
-        (joint.profile, -_OVERLAP_MM),
-        (joint.profile, joint.depth - joint.chamfer),
-        (tip, joint.depth),
-    ]
-    return _loft(piece, joint, sections, mm, tolerance)
-
-
-def _hole(piece: PieceSpec, joint: Joint, mm: float, tolerance: float) -> Brep | None:
-    sections = [(joint.profile, _OVERLAP_MM), (joint.profile, -joint.depth)]
-    return _loft(piece, joint, sections, mm, tolerance)
+def _joint_solid(piece: PieceSpec, joint: Joint, mm: float, tolerance: float) -> Brep | None:
+    (shaft, _), *rest = joint.sections
+    start = -_OVERLAP_MM if joint.gender is Gender.PEG else _OVERLAP_MM
+    return _loft(piece, joint, [(shaft, start), *rest], mm, tolerance)
 
 
 def _loft(

@@ -18,6 +18,7 @@ class Params:
     hole_extra_depth_mm: float  # room at the bottom of the hole so the peg seats fully
     clearance_mm: float  # radial gap between peg and hole
     chamfer_mm: float  # peg lead-in
+    ridge_height_mm: float  # snap ridge around the peg; clicks into a groove in the hole
     min_wall_mm: float
 
 
@@ -34,6 +35,7 @@ FDM = Params(
     hole_extra_depth_mm=0.4,
     clearance_mm=0.2,
     chamfer_mm=0.3,
+    ridge_height_mm=0.3,  # 0.1 mm wider than the hole: a firm click by hand
     min_wall_mm=1.0,  # about 2.5 perimeters with a 0.4 mm nozzle
 )
 
@@ -49,6 +51,7 @@ RESIN = Params(
     hole_extra_depth_mm=0.3,
     clearance_mm=0.1,
     chamfer_mm=0.2,
+    ridge_height_mm=0.15,
     min_wall_mm=0.6,
 )
 

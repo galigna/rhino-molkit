@@ -8,7 +8,7 @@ from __future__ import annotations
 import itertools
 import math
 from collections.abc import Iterator
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from enum import Enum
 
 from molkit.core.ballstick import ball_radius, visible_atoms
@@ -41,6 +41,11 @@ _PROFILE_KINDS = {
 # Below this sine, a neighbour is treated as collinear with the bond.
 _MIN_SINE = 0.1
 
+# Snap ridge: a band around the peg that clicks into a matching groove in the hole wall. The
+# ramps are 45° (as long as the ridge is high) so it goes in and comes out by hand.
+_RIDGE_FROM_TIP_MM = 1.5  # band centre; clear of the chamfer
+_RIDGE_BAND_MM = 0.4
+
 
 @dataclass(frozen=True)
 class PegProfile:
@@ -62,6 +67,7 @@ class Joint:
     profile: PegProfile  # holes are already enlarged by the clearance
     depth: float  # peg length beyond the midpoint, or hole depth inward from it
     chamfer: float  # peg tip lead-in; 0 for holes
+    sections: tuple[tuple[PegProfile, float], ...]  # (profile, mm past the midpoint) to loft
 
 
 @dataclass(frozen=True)
@@ -145,6 +151,7 @@ def _joint(
     partner = bond.b if atom == bond.a else bond.a
     offset = molecule.atoms[partner].position - molecule.atoms[atom].position
     is_peg = atom != _hole_atom(molecule, bond)
+    profile = _profile(bond.order, is_peg, params)
     return Joint(
         bond_index=bond_index,
         partner_index=partner,
@@ -152,9 +159,10 @@ def _joint(
         key_ref=key_ref,
         length=offset.norm() * params.scale_mm_per_a / 2,
         gender=Gender.PEG if is_peg else Gender.HOLE,
-        profile=_profile(bond.order, is_peg, params),
+        profile=profile,
         depth=params.peg_length_mm + (0.0 if is_peg else params.hole_extra_depth_mm),
         chamfer=params.chamfer_mm if is_peg else 0.0,
+        sections=_sections(profile, is_peg, params),
     )
 
 
@@ -170,6 +178,24 @@ def _profile(order: BondOrder, is_peg: bool, params: Params) -> PegProfile:
     # amount, so the flat depth (measured from the radius) is unchanged.
     clearance = 0.0 if is_peg else params.clearance_mm
     return PegProfile(_PROFILE_KINDS[order], radius + clearance, params.flat_depth_mm)
+
+
+def _sections(
+    shaft: PegProfile, is_peg: bool, params: Params
+) -> tuple[tuple[PegProfile, float], ...]:
+    """Shaft, ramp up, ridge band, ramp down, shaft; then the peg's chamfered tip or the hole's
+    floor. Holes run to negative z (into their own piece)."""
+    height = params.ridge_height_mm
+    # The groove is exactly the ridge's size; the ridge clicks past the narrower hole bore.
+    band = replace(shaft, radius=shaft.radius + height - (0.0 if is_peg else params.clearance_mm))
+    centre = params.peg_length_mm - _RIDGE_FROM_TIP_MM
+    near, far = centre - _RIDGE_BAND_MM / 2, centre + _RIDGE_BAND_MM / 2
+    body = ((shaft, 0.0), (shaft, near - height), (band, near), (band, far), (shaft, far + height))
+    if not is_peg:
+        floor = params.peg_length_mm + params.hole_extra_depth_mm
+        return (*((p, -z) for p, z in body), (shaft, -floor))
+    tip = replace(shaft, radius=shaft.radius - params.chamfer_mm)  # its flats move in too
+    return (*body, (shaft, params.peg_length_mm - params.chamfer_mm), (tip, params.peg_length_mm))
 
 
 def _key_ref(molecule: Molecule, bond: Bond) -> Vec3:
@@ -193,7 +219,7 @@ def _piece_issues(piece: PieceSpec, params: Params) -> Iterator[Issue]:
         if j.length <= piece.ball_radius:
             yield Issue(piece.atom_index, f"{where} is inside the ball")
         if j.gender is Gender.HOLE:
-            wall = piece.stick_radius - j.profile.radius
+            wall = piece.stick_radius - max(p.radius for p, _ in j.sections)  # at the groove
             if wall < params.min_wall_mm:
                 yield Issue(piece.atom_index, f"{where}: wall {wall:.2f} mm < {params.min_wall_mm}")
             if j.depth >= j.length:

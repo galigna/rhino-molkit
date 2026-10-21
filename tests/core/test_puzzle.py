@@ -89,6 +89,26 @@ def test_peg_and_hole_depths_and_chamfer(methane: Molecule) -> None:
     assert (hole.depth, hole.chamfer) == (pytest.approx(5.4), 0.0)
 
 
+def test_peg_sections_run_shaft_ridge_shaft_then_chamfered_tip(methane: Molecule) -> None:
+    peg = _joint(build_pieces(methane, FDM), 1, 0)
+    radii = [round(p.radius, 6) for p, _ in peg.sections]
+    zs = [z for _, z in peg.sections]
+    assert radii == [1.75, 1.75, 2.05, 2.05, 1.75, 1.75, 1.45]  # ridge 0.3, tip -0.3
+    assert zs == pytest.approx([0.0, 3.0, 3.3, 3.7, 4.0, 4.7, 5.0], abs=0.01)
+    assert zs == sorted(zs)
+
+
+def test_hole_groove_sits_where_the_ridge_lands_and_matches_its_size(methane: Molecule) -> None:
+    pieces = build_pieces(methane, FDM)
+    hole, peg = _joint(pieces, 0, 1), _joint(pieces, 1, 0)
+    groove = [(p.radius, -z) for p, z in hole.sections[:5]]
+    ridge = [(p.radius, z) for p, z in peg.sections[:5]]
+    assert [z for _, z in groove] == pytest.approx([z for _, z in ridge])
+    assert max(r for r, _ in groove) == pytest.approx(2.05)  # = ridge, 0.1 mm wider than the bore
+    assert hole.sections[-1][1] == pytest.approx(-5.4)
+    assert {round(p.radius, 6) for p, _ in hole.sections} == {1.95, 2.05}
+
+
 # --- profiles: shape encodes bond order -------------------------------------------
 
 
@@ -158,10 +178,17 @@ def test_defaults_are_printable(name: str) -> None:
 
 
 def test_thin_wall_around_hole_is_reported(methane: Molecule) -> None:
-    params = dataclasses.replace(FDM, stick_radius_mm=2.5)  # 2.5 - (1.75 + 0.2) = 0.55 < 1.0
+    params = dataclasses.replace(FDM, stick_radius_mm=2.5)  # groove: 2.5 - 2.05 = 0.45 < 1.0
     issues = check(build_pieces(methane, params), params)
     assert len(issues) == 4  # one per C-H hole
     assert all("wall" in i.message and i.atom_index == 0 for i in issues)
+
+
+def test_wall_is_measured_at_the_groove(methane: Molecule) -> None:
+    params = dataclasses.replace(FDM, ridge_height_mm=1.0)  # groove 2.75: wall 0.75 < 1.0
+    issues = check(build_pieces(methane, params), params)
+    assert len(issues) == 4
+    assert all("wall" in i.message for i in issues)
 
 
 def test_joint_inside_ball_is_reported(methane: Molecule) -> None:
