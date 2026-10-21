@@ -282,6 +282,10 @@ Every printer is a little different. Type `MolkitSettings`, click the model, cli
 - pegs **too tight**: make it bigger, for example `0.3` (the default is `0.2`),
 - pegs **too loose**: make it smaller, for example `0.15`.
 
+Tell us how your pieces fit with a
+[print fit report](https://github.com/galigna/rhino-molkit/issues/new?template=print_fit.yml).
+Reports from different printers help set better standard sizes.
+
 ### The puzzle won't close around a ring
 
 Molecules with rings, like benzene, are hard to finish: the last piece of a ring has to bend a
@@ -289,8 +293,8 @@ little to fit. This is a known limitation of this early version.
 
 ### Still stuck?
 
-[Open an issue](https://github.com/galigna/rhino-molkit/issues) on GitHub with the steps taken and
-the message Rhino showed.
+[Report a problem](https://github.com/galigna/rhino-molkit/issues/new?template=bug_report.yml) on
+GitHub. The form asks for what you did and the message Rhino showed.
 
 ---
 

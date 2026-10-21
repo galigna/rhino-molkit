@@ -1,0 +1,54 @@
+name: Print fit report
+description: Share how printed pieces fit together, so the default sizes can be tuned.
+labels: [print-test]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Peg and hole sizes are tuned from real prints. Every report helps, including "it fit well".
+  - type: input
+    id: molecule
+    attributes:
+      label: Molecule
+      placeholder: water
+    validations:
+      required: true
+  - type: input
+    id: printer
+    attributes:
+      label: Printer, material and nozzle
+      placeholder: Prusa MK4, PLA, 0.4 mm nozzle, 0.2 mm layers
+    validations:
+      required: true
+  - type: textarea
+    id: settings
+    attributes:
+      label: molkit settings
+      description: The preset (FDM or Resin) and any settings you changed in MolkitSettings. `MolkitInfo` prints all of them.
+      placeholder: FDM preset, Clearance changed to 0.15
+    validations:
+      required: true
+  - type: dropdown
+    id: fit
+    attributes:
+      label: First fit
+      description: How did the pegs feel the first time you put the pieces together?
+      options:
+        - Would not go in
+        - Hard to push in
+        - Snug
+        - Loose, but stays together
+        - Falls apart
+    validations:
+      required: true
+  - type: textarea
+    id: wear
+    attributes:
+      label: After repeated use
+      description: How many times did you take it apart and put it back together, and did it get looser?
+      placeholder: Snug for the first 5 times, then the H pieces started slipping out.
+  - type: textarea
+    id: damage
+    attributes:
+      label: Damage and photos
+      description: Broken pegs, split layers, white stress marks. Photos are very welcome.

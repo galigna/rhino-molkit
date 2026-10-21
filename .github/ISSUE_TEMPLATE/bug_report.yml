@@ -1,0 +1,48 @@
+name: Something doesn't work
+description: A molkit command fails, shows an error, or builds the wrong shape.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting this. Please check [Troubleshooting](https://github.com/galigna/rhino-molkit#troubleshooting) in the README first.
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: What you did, what you expected, and what you got instead.
+      placeholder: I ran MolkitPuzzle on caffeine and only 20 of 24 pieces were built.
+    validations:
+      required: true
+  - type: input
+    id: molecule
+    attributes:
+      label: Molecule
+      description: The name you typed in MolkitFetch, or the CIF file you used (attach it below if you can).
+      placeholder: caffeine
+  - type: textarea
+    id: command-line
+    attributes:
+      label: Messages from Rhino
+      description: Copy everything molkit printed in Rhino's command line (the text area above the command prompt).
+      render: text
+  - type: input
+    id: molkit-version
+    attributes:
+      label: molkit version
+      description: |
+        In PowerShell, run `& "C:\Program Files\Rhino 8\System\Yak.exe" list` and copy the molkit line.
+      placeholder: molkit (0.1.2-beta+287)
+    validations:
+      required: true
+  - type: input
+    id: rhino-version
+    attributes:
+      label: Rhino version
+      description: In Rhino, type `SystemInfo` and copy the first line.
+      placeholder: Rhino 8 SR35
+  - type: textarea
+    id: extra
+    attributes:
+      label: Screenshots or files
+      description: Drag images, CIF files or a saved .3dm file here.
