@@ -1,0 +1,16 @@
+name: Idea or request
+description: Suggest a new feature, molecule type, or improvement.
+labels: [enhancement]
+body:
+  - type: textarea
+    id: idea
+    attributes:
+      label: What would you like molkit to do?
+      placeholder: Engrave the element symbol on each piece, so they are easier to sort.
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: What would you use it for?
+      description: For example a class, a workshop, or a specific molecule.
