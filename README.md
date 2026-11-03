@@ -15,7 +15,7 @@ You type a molecule's name, for example `caffeine`, and molkit:
 No coding or 3D-design experience is needed. The steps below cover installation, a first
 puzzle, printing and assembly.
 
-> **This is an early version (0.1.2-beta).** The pieces have not been test-printed yet, so the
+> **This is an early version (0.1.2-beta).** The pieces are currently being test-printed, so the
 > pegs may come out a little too tight or too loose on your printer.
 > [Changing the fit](#the-pegs-are-too-tight-or-too-loose) takes one setting.
 
